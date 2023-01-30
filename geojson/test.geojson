@@ -1,0 +1,113 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "popupContent":"<a href='https://vtatlasoflife.org'>vtatlasoflife</a>",
+        "zoomTo":"true",
+		"type":"polygon"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -73.037109375,
+              44.692088041727786
+            ],
+            [
+              -73.487548828125,
+              43.8028187190472
+            ],
+            [
+              -72.79541015625,
+              43.620170616189895
+            ],
+            [
+              -72.520751953125,
+              44.22945656830167
+            ],
+            [
+              -73.037109375,
+              44.692088041727786
+            ]
+          ]
+        ]
+      }
+    },
+	{
+	  "type": "Feature",
+        "properties": {
+            "name": "Vermont Center for Ecostudies",
+            "amenity": "Home Office",
+            "popupContent": "This is where VCE works!",
+			"type": "marker"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-72.3197, 43.6962]
+        }
+	},
+    {
+      "type": "Feature",
+        "properties": {
+            "name": "Random LineString",
+            "popupContent": "<a href='https://vpatlas.org'>vpatlas</a>",
+			"type": "linestring"
+        },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -73.1304931640625,
+            44.88701247981298
+          ],
+          [
+            -72.75146484374999,
+            44.881174324925844
+          ],
+          [
+            -72.762451171875,
+            44.69404054463804
+          ],
+          [
+            -73.12225341796875,
+            44.861709529639704
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -73.0206298828125,
+              44.47299117260252
+            ],
+            [
+              -72.72674560546875,
+              44.47299117260252
+            ],
+            [
+              -72.72674560546875,
+              44.63739123445585
+            ],
+            [
+              -73.0206298828125,
+              44.63739123445585
+            ],
+            [
+              -73.0206298828125,
+              44.47299117260252
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
