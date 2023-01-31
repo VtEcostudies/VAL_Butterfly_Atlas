@@ -77,9 +77,10 @@ export async function getOccsFromFile(dataset='vba1') {
 }
 
 //pre-load local files at file scope to improve map performance?
-getOccsFromFile('vtb1');
-getOccsFromFile('vtb2');
-getOccsFromFile('vba1');
+//NO. Don't do this. It slows initial page load for other pages.
+//getOccsFromFile('vtb1');
+//getOccsFromFile('vtb2');
+//getOccsFromFile('vba1');
 
 /*
 https://www.gbif.org/occurrence/search
