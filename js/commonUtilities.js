@@ -31,22 +31,22 @@ export function parseCanonicalFromScientific(occJson) {
         'Content-Type': 'text/csv'
     },
 */
-    export async function fetchJsonFile(filePath) {
-        try {
-            let options = {
-                'Content-type': 'application/json'
-                }
-            let res = await fetch(filePath, options);
-            console.log(`fetchJsonFile(${filePath}) RESULT:`, res);
-            if (res.status > 299) {return res;}
-            let json = await res.json();
-            console.log(`fetchJsonFile(${filePath}) JSON:`, json);
-            return json;
-        } catch (err) {
-            console.log(`fetchJsonFile(${filePath}) ERROR:`, err);
-            return new Error(err)
-        }
+export async function fetchJsonFile(filePath) {
+    try {
+        let options = {
+            'Content-type': 'application/json'
+            }
+        let res = await fetch(filePath, options);
+        console.log(`fetchJsonFile(${filePath}) RESULT:`, res);
+        if (res.status > 299) {return res;}
+        let json = await res.json();
+        console.log(`fetchJsonFile(${filePath}) JSON:`, json);
+        return json;
+    } catch (err) {
+        console.log(`fetchJsonFile(${filePath}) ERROR:`, err);
+        return new Error(err)
     }
+}
 /*
     content-types: https://www.iana.org/assignments/media-types/media-types.xhtml
     eg.

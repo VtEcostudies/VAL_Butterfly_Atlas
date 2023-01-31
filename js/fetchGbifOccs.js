@@ -9,13 +9,19 @@ export var icons = {
     diamond: L.divIcon({className: 'diamond'}),
     triangle: L.divIcon({className: 'triangle'})
 };
-export const occData = {
-    'vtb1':{geoJson:'vtb1_occs_1000-2001.geojson','json':'vtb1_occs_1000-2001.json','description':'Obs 1000-2001','icon':icons.square,'color':'Red'},
-    'vtb2':{geoJson:'vtb2_occs_2008-2022.geojson','json':'vtb2_occs_2008-2022.json','description':'Obs 2008-2022','icon':icons.round,'color':'Blue'},
-    'vba1':{geoJson:'vba1_occs_2002-2007.geojson','json':'vba1_occs_2002-2007.json','description':'Butterfly Atlas 1','icon':icons.triangle,'color':'Cyan'},
-    'vba2':{geoJson:'vba2_occs_2023-2028.geojson','json':'vba2_occs_2023-2028.json','description':'Butterfly Atlas 2','icon':icons.diamond,'color':'Green'},
-    'test':{geoJson:'test.geojson','json':'test.json','description':'test dataset','icon':icons.square,'color':'Red'}
+export const occInfo = {
+    'vtb1':{geoJson:'geoJson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','description':'Obs 1000-2001','icon':icons.square,'color':'Red'},
+    'vtb2':{geoJson:'geoJson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','description':'Obs 2008-2022','icon':icons.round,'color':'Blue'},
+    'vba1':{geoJson:'geoJson/vba1_occs_2002-2007.geojson','json':'occjson/vba1_occs_2002-2007.json','description':'Butterfly Atlas 1','icon':icons.triangle,'color':'Cyan'},
+    'vba2':{geoJson:'geoJson/vba2_occs_2023-2028.geojson','json':'occjson/vba2_occs_2023-2028.json','description':'Butterfly Atlas 2','icon':icons.diamond,'color':'Green'},
+    'test':{geoJson:'geoJson/test.geojson','json':'occjson/test.json','description':'test dataset','icon':icons.square,'color':'Red','data':false}
 };
+export var occData = {
+    'vtb1':{},
+    'vtb2':{},
+    'vba1':{},
+    'vba2':{}
+}
 export async function getOccsByDatasetAndWKT(dataset='vba1', geoWKT='') {
     return await getOccsByFilters(0, 300, datasetKeys[dataset], geoWKT);
 }
@@ -57,9 +63,23 @@ console.log(`getOccsByFilters(${offset}, ${limit}, ${datasetKey}, ${geometryWKT}
 export async function getOccsFromFile(dataset='vba1') {
     let parr = window.location.pathname.split('/'); delete parr[parr.length-1];
     let path = parr.join('/');
-    console.log(`getOccsFromFile:`, `${window.location.protocol}//${window.location.host}/${path}${occData[dataset].json}`);
-    return fetchJsonFile('occjson/' + occData[dataset].json);
+    console.log(`getOccsFromFile:`, `${window.location.protocol}//${window.location.host}/${path}${occInfo[dataset].json}`);
+    //console.log(`getOccsFromFile | occData(${dataset}):`, occData[dataset]);
+    if (occData[dataset].rowCount) {
+        console.log(`getOccsFromFile: FOUND ${occData[dataset].rowCount} rows for ${dataset}.`);
+        return occData[dataset];
+    }
+    else {
+        console.log(`getOccsFromFile: No data for ${dataset}. Fetching...`);
+        occData[dataset] = await fetchJsonFile(occInfo[dataset].json);
+        return occData[dataset];
+    }
 }
+
+//pre-load local files at file scope to improve map performance?
+getOccsFromFile('vtb1');
+getOccsFromFile('vtb2');
+getOccsFromFile('vba1');
 
 /*
 https://www.gbif.org/occurrence/search

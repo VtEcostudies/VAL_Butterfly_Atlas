@@ -4,7 +4,7 @@
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
-import { occData, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, icons } from './fetchGbifOccs.js';
+import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, icons } from './fetchGbifOccs.js';
 import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
 import { sheetSignUps, sheetVernacularNames } from './fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from './fetchGbifSpecies.js';
@@ -287,7 +287,7 @@ function onGeoBoundaryStyle(feature) {
   Add geoJson occurrences to map with their own layer control
 */
 async function addGeoJsonOccurrences(dataset='test', layerId=0) {
-  let grpName = occData[dataset].description;
+  let grpName = occInfo[dataset].description;
   let idGrpName = grpName.split(' ').join('_');
 
   eleWait.style.display = "block";
@@ -302,21 +302,21 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
 
   occGroup = new L.FeatureGroup();
   
-  console.log('addGeoJsonOccurrences adding', dataset, occData[dataset].geoJson);
+  console.log('addGeoJsonOccurrences adding', dataset, occInfo[dataset].geoJson);
 
   try {
-    let json = await fetchJsonFile(`geojson/${occData[dataset].geoJson}`);
+    let json = await fetchJsonFile(`${occInfo[dataset].geoJson}`);
     let layer = await L.geoJSON(json, {
       pointToLayer: function(feature, latlng) {
         if (iconMarkers) {
           let options = {
-            icon: occData[dataset].icon
+            icon: occInfo[dataset].icon
           }
           return L.marker(latlng, options);
         } else {
           let options = {
             radius: 5,
-            fillColor: occData[dataset].color,
+            fillColor: occInfo[dataset].color,
             color: 'Black',
             weight: 1,
             opacity: 1,
@@ -326,7 +326,7 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
         };      
       },
       onEachFeature: onEachGeoOccFeature,
-      name: occData[dataset].description,
+      name: occInfo[dataset].description,
       id: layerId
     }).addTo(valMap);
     occGroup.addLayer(layer);
@@ -336,7 +336,7 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
     groupLayerControl.addOverlay(layer, `<label id="${idGrpName}">${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})</label>`);
     eleWait.style.display = "none";
   } catch(err) {
-    console.log('Error loading file', occData[dataset].geoJson, err);
+    console.log('Error loading file', occInfo[dataset].geoJson, err);
     eleWait.style.display = "none";
     //alert(err.message);
   }
@@ -351,7 +351,7 @@ function geoJsonMarker(feature, latlng) {
   } else {
     options = {
       radius: 5,
-      fillColor: occData[dataset].color,
+      fillColor: occInfo[dataset].color,
       color: 'Black',
       weight: 1,
       opacity: 1,
@@ -712,19 +712,19 @@ async function getLiveData(dataset='vba2') {
   let max = 1000;
   do {
     page = await getOccsByFilters(off, lim);
-    addOccsToMap(page.results, occData[dataset].description, occData[dataset].icon, occData[dataset].color);
+    addOccsToMap(page.results, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
     off += lim;
   } while (!page.endOfRecords && !abortData && off<max);
 }
 
 async function getJsonFileData(dataset='vba1') {
   let occF = await getOccsFromFile(dataset);
-  addOccsToMap(occF.rows, occData[dataset].description, occData[dataset].icon, occData[dataset].color);
+  addOccsToMap(occF.rows, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
 }
 
 function showUrlInfo(dataset='vba1') {
   if (document.getElementById("urlInfo")) {
-    document.getElementById("urlInfo").innerHTML += `<a target="_blank" href="./${occData[dataset].file}">${occData[dataset].description}</a></br>`;
+    document.getElementById("urlInfo").innerHTML += `<a target="_blank" href="./${occInfo[dataset].file}">${occInfo[dataset].description}</a></br>`;
   }
 }
 
@@ -753,7 +753,7 @@ function clearData() {
 async function clearDataSet(dataset=false) {
   if (!dataset) return;
 
-  let key = occData[dataset].description;
+  let key = occInfo[dataset].description;
   delete cmGroup[key];
   delete cmCount[key];
   delete cmTotal[key];
@@ -790,7 +790,7 @@ if (document.getElementById("dataType")) {
   });
 }
 //iconMarkers
-if (document.getElementById("dataType")) {
+if (document.getElementById("iconMarkers")) {
   let eleIcon = document.getElementById("iconMarkers");
   eleIcon.addEventListener("click", () => {
     iconMarkers = eleIcon.checked;
@@ -801,7 +801,7 @@ if (document.getElementById("getVtb1")) {
   document.getElementById("getVtb1").addEventListener("click", async () => {
     abortData = false;
     let dataset = 'vtb1';
-    let grpName = occData[dataset].description;
+    let grpName = occInfo[dataset].description;
     console.log('LOAD VTB1', grpName, cmGroup[grpName], cmGroup)
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
@@ -815,7 +815,7 @@ if (document.getElementById("getVtb2")) {
   document.getElementById("getVtb2").addEventListener("click", () => {
     abortData = false;
     let dataset = 'vtb2';;
-    let grpName = occData[dataset].description;
+    let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
@@ -828,7 +828,7 @@ if (document.getElementById("getVba1")) {
   document.getElementById("getVba1").addEventListener("click", () => {
     abortData = false;
     let dataset = 'vba1';
-    let grpName = occData[dataset].description;
+    let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
@@ -841,7 +841,7 @@ if (document.getElementById("getVba2")) {
   document.getElementById("getVba2").addEventListener("click", () => {
     abortData = false;
     let dataset = 'vba2';
-    let grpName = occData[dataset].description;
+    let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
