@@ -2,7 +2,7 @@
     Use json object from GBIF occurrence/search API to parse
     scientificName into canonicalName.
 */
-function parseCanonicalFromScientific(occJson) {
+export function parseCanonicalFromScientific(occJson) {
     var toks = occJson.scientificName.split(' ');
     var name = null;
     switch(occJson.taxonRank.toUpperCase()) {
