@@ -1,11 +1,11 @@
 /*
 - Show VT priority blocks on a map of VT
-- Load a json array from GBIF Occurrence API and populate the map with point occurrence data
+- Load a json array from static GBIF Occurrence datasets or a geoJson file and populate the map with point occurrence data
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
 import { occData, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, icons } from './fetchGbifOccs.js';
-import { fetchJsonFile } from './commonUtilities.js';
+import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
 import { sheetSignUps, sheetVernacularNames } from './fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from './fetchGbifSpecies.js';
 import { getWikiPage } from './wiki_page_data.js';
@@ -566,27 +566,6 @@ async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, g
   eleWait.style.display = "none";
 }
 
-
-function parseCanonicalFromScientific(occJson) {
-  var toks = occJson.scientificName.split(' ');
-  var name = null;
-  switch(occJson.taxonRank.toUpperCase()) {
-    case 'SUBSPECIES':
-    case 'VARIETY':
-    case 'FORM':
-      name = `${toks[0]} ${toks[1]} ${toks[2]}`;
-      break;
-    case 'SPECIES':
-      name = `${toks[0]} ${toks[1]}`;
-      break;
-    case 'GENUS':
-    default:
-      name = `${toks[0]}`;
-      break;
-  }
-  return name;
-}
-
 async function occurrencePopupInfo(occRecord) {
     var info = '';
 
@@ -689,18 +668,6 @@ function initGbifStandalone(layerPath=false, layerName, layerId) {
     addMap();
     addMapCallbacks();
     if (!boundaryLayerControl) {addBoundaries(layerPath, layerName, layerId);}
-}
-
-if (document.getElementById("valSurveyBlocksLady")) {
-  let layerPath = 'geojson/lady_beetle_priority_blocks.geojson';
-  let layerName = 'Survey Blocks - Lady Beetles';
-  initGbifStandalone(layerPath, layerName, 7);
-}
-
-if (document.getElementById("valSurveyBlocksEAME")) {
-  let layerPath = 'geojson/EAME_Priority_Blocks.geojson';
-  let layerName = 'Survey Blocks - EAME';
-  initGbifStandalone(layerPath, layerName, 8);
 }
 
 /*

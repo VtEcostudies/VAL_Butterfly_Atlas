@@ -4,10 +4,10 @@
 const fs = require('fs');
 const { csvFileTo2DObject } = require('C:/Users/jtloo/Documents/VCE/VAL_Data_Pipelines/VAL_Utilities/99_parse_csv_to_array.js');
 const csvFile = {
-    'test': 'C:/Users/jtloo/Documents/VCE/VAL_webUI/val_www/val_www/leaflet/occ/vtb2_occs_2008-2022_abbrev.tsv',
-    'vtb1': 'C:/Users/jtloo/Documents/VCE/VAL_webUI/val_www/val_www/leaflet/occ/vtb1_occs_1000-2001.tsv',
-    'vtb2': 'C:/Users/jtloo/Documents/VCE/VAL_webUI/val_www/val_www/leaflet/occ/vtb2_occs_2008-2022.tsv',
-    'vba1': 'C:/Users/jtloo/Documents/VCE/VAL_webUI/val_www/val_www/leaflet/occ/vba1_occs.tsv',
+    'test': '../occ/vtb2_occs_2008-2022_abbrev.tsv',
+    'vtb1': '../occ/vtb1_occs_1000-2001.tsv',
+    'vtb2': '../occ/vtb2_occs_2008-2022.tsv',
+    'vba1': '../occ/vba1_occs.tsv',
 };
 const includeColumns = ['gbifID','datasetKey','taxonRank','scientificName','occurrenceStatus','decimalLatitude','decimalLongitude','eventDate','taxonKey','identifiedBy','dateIdentified','recordedBy']
 const excludeRowTests = {
