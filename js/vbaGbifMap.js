@@ -6,7 +6,7 @@
 */
 import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, icons } from './fetchGbifOccs.js';
 import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
-import { sheetSignUps, sheetVernacularNames } from './fetchGoogleSheetsData.js';
+import { getSheetSignups, sheetVernacularNames } from './fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from './fetchGbifSpecies.js';
 import { getWikiPage } from './wiki_page_data.js';
 
@@ -37,7 +37,7 @@ var geoJsonData = true;
 var bindPopups = false;
 var bindToolTips = false;
 var iconMarkers = false;
-//var sheetSignUps = []; //array of survey blocks that have been signed up
+var sheetSignUps = false; //array of survey blocks that have been signed up
 var signupStyle = {
   color: "black",
   weight: 1,
@@ -196,9 +196,10 @@ function onGeoBoundaryFeature(feature, layer) {
       var tips = '';
       for (var key in obj) { //iterate over feature properties
         switch(key.toLowerCase()) {
-          case 'cntyname':
-          case 'townname':
           case 'blockname':
+            //getBlockSignups();
+          case 'townname':
+          case 'cntyname':
             tips = `${obj[key]}<br>`;
             break;
         }
@@ -674,10 +675,10 @@ function initGbifStandalone(layerPath=false, layerName, layerId) {
   Deprecated in favor of file-scope variable 'sheetSignUps'
   All we need to do now is to call putSignups. 
 */
-async function getSurveyBlockData() {
+async function getBlockSignups() {
   //get an array of sheetSignUps by blockname with name and date
-  sheetSignUps = await getSignups();
-  console.log('getSurveyBlockData', sheetSignUps);
+  sheetSignUps = await getSheetSignups();
+  console.log('getBlockSignups', sheetSignUps);
   putSignups(sheetSignUps);
 }
 
@@ -701,8 +702,8 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   let layerName = 'Survey Blocks';
   let layerId = 9;
   initGbifStandalone(layerPath, layerName, layerId);
-  //getSurveyBlockData();
-  putSignups(sheetSignUps);
+  getBlockSignups();
+  //putSignups(sheetSignUps);
 }
 
 async function getLiveData(dataset='vba2') {
@@ -871,8 +872,8 @@ if (document.getElementById("abortData")) {
 }
 if (document.getElementById("test")) {
   document.getElementById("test").addEventListener("click", () => {
-    //getSurveyBlockData();
     console.log("test button click.");
-    putSignups(sheetSignUps);
+    getBlockSignups();
+    //putSignups(sheetSignUps);
   });
 }

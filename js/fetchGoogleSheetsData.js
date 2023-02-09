@@ -5,7 +5,7 @@ let defaultSheetIds = {
     "vernacular": '17_e15RB8GgpMVZgvwkFHV8Y9ZgLRXg5Swow49wZsAyQ'
 }
 
-export var sheetSignUps; //store sheetSignUps at file scope
+//export var sheetSignUps; //store sheetSignUps at file scope. NOTE: this is read-only outside this file so we can't use it for updates.
 export var sheetVernacularNames; //store sheetVernacularNames for multi-use
 
 /*
@@ -99,5 +99,5 @@ export async function getSheetVernaculars(sheetNumber=0) {
     }
 }
 
-sheetSignUps = await getSheetSignups();
+//sheetSignUps = await getSheetSignups();
 sheetVernacularNames = await getSheetVernaculars();

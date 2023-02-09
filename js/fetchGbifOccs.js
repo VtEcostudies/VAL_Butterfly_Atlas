@@ -10,11 +10,11 @@ export var icons = {
     triangle: L.divIcon({className: 'triangle'})
 };
 export const occInfo = {
-    'vtb1':{geoJson:'geoJson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','description':'Obs 1000-2001','icon':icons.square,'color':'Red'},
-    'vtb2':{geoJson:'geoJson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','description':'Obs 2008-2022','icon':icons.round,'color':'Blue'},
-    'vba1':{geoJson:'geoJson/vba1_occs_2002-2007.geojson','json':'occjson/vba1_occs_2002-2007.json','description':'Butterfly Atlas 1','icon':icons.triangle,'color':'Cyan'},
-    'vba2':{geoJson:'geoJson/vba2_occs_2023-2028.geojson','json':'occjson/vba2_occs_2023-2028.json','description':'Butterfly Atlas 2','icon':icons.diamond,'color':'Green'},
-    'test':{geoJson:'geoJson/test.geojson','json':'occjson/test.json','description':'test dataset','icon':icons.square,'color':'Red','data':false}
+    'vtb1':{geoJson:'geojson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','description':'Obs 1000-2001','icon':icons.square,'color':'Red'},
+    'vtb2':{geoJson:'geojson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','description':'Obs 2008-2022','icon':icons.round,'color':'Blue'},
+    'vba1':{geoJson:'geojson/vba1_occs_2002-2007.geojson','json':'occjson/vba1_occs_2002-2007.json','description':'Butterfly Atlas 1','icon':icons.triangle,'color':'Cyan'},
+    'vba2':{geoJson:'geojson/vba2_occs_2023-2028.geojson','json':'occjson/vba2_occs_2023-2028.json','description':'Butterfly Atlas 2','icon':icons.diamond,'color':'Green'},
+    'test':{geoJson:'geojson/test.geojson','json':'occjson/test.json','description':'test dataset','icon':icons.square,'color':'Red','data':false}
 };
 export var occData = {
     'vtb1':{},
