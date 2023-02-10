@@ -44,7 +44,7 @@ var signupStyle = {
   fillColor: "green",
   fillOpacity: 0.5,
   disabled: true
-}
+};
 
 //for standalone use
 function addMap() {
@@ -136,6 +136,14 @@ function onZoomEnd(e) {
   zoomLevel = valMap.getZoom();
   zoomCenter = valMap.getCenter();
   //SetEachPointRadius();
+  setZoomInfo();
+}
+
+function setZoomInfo() {
+    let eleZum = document.getElementById("zoomInfo");
+    if (eleZum) {
+      eleZum.innerText = `Zoom: ${zoomLevel}`;
+    }
 }
 
 async function zoomVT() {
@@ -161,6 +169,7 @@ async function addBoundaries(layerPath=false, layerName=false, layerId=9) {
     boundaryLayerControl.setPosition("bottomright");
 
     geoGroup = new L.FeatureGroup();
+    
     addGeoJsonLayer('geojson/Polygon_VT_State_Boundary.geojson', "State", 0, boundaryLayerControl, geoGroup);
     addGeoJsonLayer('geojson/Polygon_VT_County_Boundaries.geojson', "Counties", 1, boundaryLayerControl, geoGroup, !layerPath);
     addGeoJsonLayer('geojson/Polygon_VT_Town_Boundaries.geojson', "Towns", 2, boundaryLayerControl, geoGroup);
@@ -533,9 +542,24 @@ async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, g
         }
       }
 
+      var clusterOptions = {
+        disableClusteringAtZoom: 18,
+        spiderfyOnMaxZoom: false,
+        maxClusterRadius: 40
+/*
+        iconCreateFunction: function(cluster) {
+          return L.divIcon({
+            html: '<b>' + cluster.getChildCount() + '</b>',
+            css: 'color: blue;'
+          });
+        }
+*/
+      };
+      
       if (typeof cmGroup[grpName] === 'undefined') {
         console.log(`cmGroup[${grpName}] is undefined...adding.`);
-        cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated from API
+        //cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
+        cmGroup[grpName] = L.markerClusterGroup(clusterOptions).addTo(valMap);
         if (groupLayerControl) {
           groupLayerControl.addOverlay(cmGroup[grpName], `<label id="${idGrpName}">${grpName}</label>`);
         } else {
