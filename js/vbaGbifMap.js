@@ -4,7 +4,7 @@
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
-import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, icons } from './fetchGbifOccs.js';
+import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo } from './fetchGbifOccs.js';
 import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
 import { getSheetSignups, sheetVernacularNames } from './fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from './fetchGbifSpecies.js';
@@ -37,6 +37,7 @@ var geoJsonData = true;
 var bindPopups = false;
 var bindToolTips = false;
 var iconMarkers = false;
+var clusterMarkers = true;
 var sheetSignUps = false; //array of survey blocks that have been signed up
 var signupStyle = {
   color: "black",
@@ -320,7 +321,7 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
       pointToLayer: function(feature, latlng) {
         if (iconMarkers) {
           let options = {
-            icon: occInfo[dataset].icon
+            icon: L.divIcon(getClusterIconOptions(occInfo[dataset].icon, false, 12))
           }
           return L.marker(latlng, options);
         } else {
@@ -350,25 +351,6 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
     eleWait.style.display = "none";
     //alert(err.message);
   }
-}
-
-function geoJsonMarker(feature, latlng) {
-  let marker;
-  if (iconMarkers) {
-    options = {
-      icon: groupIcon ? groupIcon : icons.square
-    }
-  } else {
-    options = {
-      radius: 5,
-      fillColor: occInfo[dataset].color,
-      color: 'Black',
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.5
-    }
-    return L.circleMarker(latlng, options);
-  };
 }
 
 /*
@@ -463,22 +445,57 @@ async function markerOnClick(e) {
 }
 
 /*
+  Shapes defined by divIcon className can be resized with divIcon iconSize (square, round, ...)
+  Shapes defined by custom html/css don't respond to divIcon iconSize (diamond, ...)
+*/
+function getClusterIconOptions(grpIcon, cluster, sz=30) {
+  let html;
+  let name;
+  let size = L.point(sz, sz);
+  switch(grpIcon) {
+    case 'square':
+      html = `<div class="cluster-count"> ${cluster ? cluster.getChildCount() : ''} </div>`;
+      name = `${grpIcon}-shape`;
+      break;
+    case 'round':
+      html = `<div class="cluster-count"> ${cluster ? cluster.getChildCount() : ''} </div>`;
+      name = `${grpIcon}-shape`;
+      break;
+    case 'triangle':
+      html = `<div class="triangle-count"> ${cluster ? cluster.getChildCount() : ''} </div>`;
+      name = cluster ? 'triangle-shape' : 'triangle-small';
+      break;
+    case 'diamond':
+      html = `
+        <div class="${cluster ? 'diamond-shape' : 'diamond-small'}">
+        <div class="diamond-count">${cluster ? cluster.getChildCount() : ''}</div>
+        </div>`;
+    break;
+  }
+  return {'html':html, 'className':name, 'iconSize':size}
+}
+
+/*
   This is partially refactored for larger datasets:
   - don't hang tooltips on each point
   - don't hang popup on each point
   - externally, reduce dataset size by removing unnecessary columns
 */
-async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, groupColor='Red') {
+//async function addOccsToMap(occJsonArr=[], groupField='datasetKey', grpIcon, grpColor='Red') {
+async function addOccsToMap(occJsonArr=[], dataset) {
   let sciName;
   let canName;
-  cmTotal[groupField] = 0;
+  let grpName = occInfo[dataset].description;
+  let grpIcon = occInfo[dataset].icon;
+  let grpColor = occInfo[dataset].color;
+  let idGrpName = grpName.split(' ').join('_');
+  cmTotal[grpName] = 0; //cmTotal[groupField] = 0;
   if (!occJsonArr.length) return;
   eleWait.style.display = "block";
   //for (var i = 0; i < occJsonArr.length; i++) {var occJson = occJsonArr[i]; //synchronous loop
   occJsonArr.forEach(async occJson => { //asynchronous loop
-      let grpName = groupField; //begin by assigning all occs to same group
-      if (occJson[groupField]) {grpName = occJson[groupField];} //if the dataset has groupField, get the value of the json element for this record...
-      let idGrpName = grpName.split(' ').join('_');
+      //let grpName = groupField; //begin by assigning all occs to same group
+      //if (occJson[groupField]) {grpName = occJson[groupField];} //if the dataset has groupField, get the value of the json element for this record...
       if (typeof cmCount[grpName] === 'undefined') {cmCount[grpName] = 0;}
       cmTotal[grpName]++;
 
@@ -500,13 +517,11 @@ async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, g
       var llLoc = L.latLng(occJson.decimalLatitude, occJson.decimalLongitude);
       cmCount[grpName]++; //count occs having location data
 
-      if (iconMarkers) {
-        var marker = L.marker(llLoc, {
-          icon: groupIcon ? groupIcon : icons.square
-        })
+      if (clusterMarkers || iconMarkers) {
+        var marker = L.marker(llLoc, {icon: L.divIcon(getClusterIconOptions(grpIcon, false, 12))});
       } else {
         var marker = L.circleMarker(llLoc, {
-            fillColor: groupColor, //interior color
+            fillColor: grpColor, //interior color
             fillOpacity: 0.5, //values from 0 to 1
             color: "black", //border color
             weight: 1, //border thickness
@@ -545,21 +560,19 @@ async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, g
       var clusterOptions = {
         disableClusteringAtZoom: 18,
         spiderfyOnMaxZoom: false,
-        maxClusterRadius: 40
-/*
+        maxClusterRadius: 40,
         iconCreateFunction: function(cluster) {
-          return L.divIcon({
-            html: '<b>' + cluster.getChildCount() + '</b>',
-            css: 'color: blue;'
-          });
+          return L.divIcon(getClusterIconOptions(grpIcon, cluster));
         }
-*/
       };
       
       if (typeof cmGroup[grpName] === 'undefined') {
         console.log(`cmGroup[${grpName}] is undefined...adding.`);
-        //cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
-        cmGroup[grpName] = L.markerClusterGroup(clusterOptions).addTo(valMap);
+        if (clusterMarkers) {
+          cmGroup[grpName] = L.markerClusterGroup(clusterOptions).addTo(valMap);
+        } else {
+          cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
+        }
         if (groupLayerControl) {
           groupLayerControl.addOverlay(cmGroup[grpName], `<label id="${idGrpName}">${grpName}</label>`);
         } else {
@@ -585,7 +598,9 @@ async function addOccsToMap(occJsonArr=[], groupField='datasetKey', groupIcon, g
     let idGrpName = grpName.split(' ').join('_');
     if (document.getElementById(idGrpName)) {
         console.log(`-----match----->> ${idGrpName} | ${grpName}`, cmCount[grpName], cmTotal[grpName]);
-        document.getElementById(idGrpName).innerHTML = `${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})`;
+        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})</div>`;
+        document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})</div>`;
+        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})<div class="${grpIcon}-small"></div></div>`;
     }
   });
   eleWait.style.display = "none";
@@ -730,21 +745,23 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   //putSignups(sheetSignUps);
 }
 
-async function getLiveData(dataset='vba2') {
+async function getLiveData(dataset='vba1') {
   let page = {};
   let lim = 300;
   let off = 0;
   let max = 1000;
   do {
     page = await getOccsByFilters(off, lim);
-    addOccsToMap(page.results, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
+    //addOccsToMap(page.results, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
+    addOccsToMap(page.results, dataset);
     off += lim;
   } while (!page.endOfRecords && !abortData && off<max);
 }
 
 async function getJsonFileData(dataset='vba1') {
   let occF = await getOccsFromFile(dataset);
-  addOccsToMap(occF.rows, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
+  //addOccsToMap(occF.rows, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
+  addOccsToMap(occF.rows, dataset);
 }
 
 function showUrlInfo(dataset='vba1') {

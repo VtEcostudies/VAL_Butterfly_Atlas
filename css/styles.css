@@ -1,5 +1,15 @@
 
-.round {
+.cluster-count {
+  width: 30px;
+  height: 30px;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.round-shape {
   height: 10px;
   width: 10px;
   background-color: greenyellow;
@@ -8,34 +18,87 @@
   border-style: solid;
   border-width: 2px;
 }
+.round-small {
+  height: 5px;
+  width: 5px;
+  background-color: greenyellow;
+  border-radius: 50%;
+  border-color: black;
+  border-style: solid;
+  border-width: 1px;
+}
 
-.square {
-  height: 10px;
-  width: 10px;
+.square-shape {
+  height: 30px;
+  width: 30px;
   background-color: red;
   border-radius: 0%;
   border-color: black;
   border-style: solid;
   border-width: 2px;
 }
-
-.diamond {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  padding: 0;
-  width: 20px;
+.square-small {
   height: 5px;
+  width: 5px;
+  background-color: red;
+  border-radius: 0%;
+  border-color: black;
+  border-style: solid;
+  border-width: 1px;
 }
 
-.triangle {
+.triangle-shape {
 	width: 0;
 	height: 0;
-	border-left: 10px solid transparent;
-	border-right: 10px solid transparent;
-	border-bottom: 10px solid blue  ;
+  /*background-color: cyan; this makes a square*/
+  /*border-color: cyan; this doesn't work*/
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+	border-bottom: 30px solid cyan;
+  text-align: left;
+  align-content: baseline;
+}
+.triangle-count {
+  width: 30px;
+  height: 30px;
+  display: table-cell;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  transform: translate(-10px, 15px)
+}
+.triangle-small {
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-bottom: 12px solid cyan;
+  text-align: left;
+  align-content: baseline;
+}
+
+.diamond-shape {
+  background: blue;
+  height: 30px;
+  text-align: center;
+  transform: rotate(45deg);
+	width: 30px;
+}
+.diamond-count {
+  color: yellow;
+  display: table-cell;
+  height: 30px;
+	width: 30px;
+  transform: rotate(-45deg);
+  vertical-align: middle;
+  font-weight: bold;
+}
+.diamond-small {
+  background: blue;
+  height: 10px;
+	width: 10px;
+  text-align: center;
+  transform: rotate(45deg);
 }
 
 html, body, #mapid, .row-fluid{
