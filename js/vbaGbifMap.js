@@ -298,7 +298,7 @@ function onGeoBoundaryStyle(feature) {
   Add geoJson occurrences to map with their own layer control
 */
 async function addGeoJsonOccurrences(dataset='test', layerId=0) {
-  let grpName = occInfo[dataset].description;
+  let grpName = occInfo[dataset].name;
   let idGrpName = grpName.split(' ').join('_');
 
   if (groupLayerControl === false) {
@@ -335,7 +335,7 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
         };      
       },
       onEachFeature: onEachGeoOccFeature,
-      name: occInfo[dataset].description,
+      name: occInfo[dataset].name,
       id: layerId
     }).addTo(valMap);
     occGroup.addLayer(layer);
@@ -483,7 +483,7 @@ function getClusterIconOptions(grpIcon, cluster, sz=30) {
 async function addOccsToMap(occJsonArr=[], dataset) {
   let sciName;
   let canName;
-  let grpName = occInfo[dataset].description;
+  let grpName = occInfo[dataset].name;
   let grpIcon = occInfo[dataset].icon;
   let grpColor = occInfo[dataset].color;
   let idGrpName = grpName.split(' ').join('_');
@@ -554,7 +554,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         }
       }
 
-      var clusterOptions = {
+      let clusterOptions = {
         disableClusteringAtZoom: 18,
         spiderfyOnMaxZoom: false,
         maxClusterRadius: 40,
@@ -562,6 +562,8 @@ async function addOccsToMap(occJsonArr=[], dataset) {
           return L.divIcon(getClusterIconOptions(grpIcon, cluster));
         }
       };
+      let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+      let grpHtml = `<div class="layerControlItem" id="${idGrpName}"><i class="fa fa-${faIcon} "></i>${grpName}</div>`;
       
       if (typeof cmGroup[grpName] === 'undefined') {
         console.log(`cmGroup[${grpName}] is undefined...adding.`);
@@ -571,11 +573,11 @@ async function addOccsToMap(occJsonArr=[], dataset) {
           cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
         }
         if (groupLayerControl) {
-          groupLayerControl.addOverlay(cmGroup[grpName], `<label id="${idGrpName}">${grpName}</label>`);
+          groupLayerControl.addOverlay(cmGroup[grpName], grpHtml);
         } else {
           groupLayerControl = L.control.layers().addTo(valMap);
           groupLayerControl.setPosition("bottomright");
-          groupLayerControl.addOverlay(cmGroup[grpName], `<label id="${idGrpName}">${grpName}</label>`);
+          groupLayerControl.addOverlay(cmGroup[grpName], grpHtml);
         }
       
         cmGroup[grpName].addLayer(marker); //add this marker to the current layerGroup, which is an object with possibly multiple layerGroups by sciName
@@ -588,7 +590,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
       document.getElementById("jsonResults").innerHTML += ` | records mapped: ${cmCount['all']}`;
   }
 
-  //cmGroup's keys are sciNames or dataset descriptions
+  //cmGroup's keys are sciNames or dataset names
   //each layer's control label's id=idGrpName has spaces replaced with underscores
   var id = null;
   Object.keys(cmGroup).forEach((grpName) => {
@@ -596,7 +598,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
     if (document.getElementById(idGrpName)) {
         console.log(`-----match----->> ${idGrpName} | ${grpName}`, cmCount[grpName], cmTotal[grpName]);
         //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})</div>`;
-        document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})</div>`;
+        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})</div>`;
         //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})<div class="${grpIcon}-small"></div></div>`;
     }
   });
@@ -748,7 +750,6 @@ async function getLiveData(dataset='vba1') {
   let max = 1000;
   do {
     page = await getOccsByFilters(off, lim);
-    //addOccsToMap(page.results, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
     addOccsToMap(page.results, dataset);
     off += lim;
   } while (!page.endOfRecords && !abortData && off<max);
@@ -756,13 +757,12 @@ async function getLiveData(dataset='vba1') {
 
 async function getJsonFileData(dataset='vba1') {
   let occF = await getOccsFromFile(dataset);
-  //addOccsToMap(occF.rows, occInfo[dataset].description, occInfo[dataset].icon, occInfo[dataset].color);
   addOccsToMap(occF.rows, dataset);
 }
 
 function showUrlInfo(dataset='vba1') {
   if (document.getElementById("urlInfo")) {
-    document.getElementById("urlInfo").innerHTML += `<a target="_blank" href="./${occInfo[dataset].file}">${occInfo[dataset].description}</a></br>`;
+    document.getElementById("urlInfo").innerHTML += `<a target="_blank" href="./${occInfo[dataset].file}">${occInfo[dataset].name}</a></br>`;
   }
 }
 
@@ -791,7 +791,7 @@ async function clearData() {
 async function clearDataSet(dataset=false) {
   if (!dataset) return;
 
-  let key = occInfo[dataset].description;
+  let key = occInfo[dataset].name;
   delete cmGroup[key];
   delete cmCount[key];
   delete cmTotal[key];
@@ -835,8 +835,9 @@ if (document.getElementById("iconMarkers")) {
     console.log('dataType Click', eleIcon.checked, iconMarkers);
   });
 }
+/* And attempt to use the data-load buttons as toggle-buttons to show/hide layers. Abandoned, not necessary. */
 async function toggleOccLayer(dataset) {
-  let grpName = occInfo[dataset].description;
+  let grpName = occInfo[dataset].name;
   console.log('toggleOccLayer', grpName, cmGroup[grpName], cmGroup)
   if (cmGroup.hasLayer(grpName)) {
     eleVtb1.classList.remove('button-active');
@@ -846,16 +847,23 @@ async function toggleOccLayer(dataset) {
     cmGroup.addLayer(grpName);
   }
 }
+/* Add dataset's icon to a button in front of its text using icon definitions in occInfo */
+async function addIconToButton(eleButn, dataset) {
+  let grpIcon = occInfo[dataset].icon;
+  let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+  let faClas = 'triangle'==grpIcon ? 'triangle-button' : '';
+  eleButn.innerHTML = `<span class="${faClas}"><i class="fa fa-${faIcon} "></i>${occInfo[dataset].name}</span>`;
+
+}
 let eleVtb1 = document.getElementById("getVtb1");
 if (eleVtb1) {
+  let dataset = 'vtb1';
+  addIconToButton(eleVtb1, dataset);
   eleVtb1.addEventListener("click", async () => {
     eleWait.style.display = 'block';
     abortData = false;
-    let dataset = 'vtb1';
-    let grpName = occInfo[dataset].description;
+    let grpName = occInfo[dataset].name;
     if (cmGroup[grpName]) {
-      console.log('Dataset already loaded.');
-      //toggleOccLayer(dataset);
       alert('Dataset already loaded.');
     } else {
       eleVtb1.classList.add('button-active');
@@ -867,11 +875,12 @@ if (eleVtb1) {
 }
 let eleVtb2 = document.getElementById("getVtb2");
 if (eleVtb2) {
+  let dataset = 'vtb2';
+  addIconToButton(eleVtb2, dataset);
   eleVtb2.addEventListener("click", async () => {
     eleWait.style.display = 'block';
     abortData = false;
-    let dataset = 'vtb2';;
-    let grpName = occInfo[dataset].description;
+    let grpName = occInfo[dataset].name;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
@@ -884,11 +893,12 @@ if (eleVtb2) {
 }
 let eleVba1 = document.getElementById("getVba1");
 if (eleVba1) {
-    eleVba1.addEventListener("click", async () => {
+  let dataset = 'vba1';
+  addIconToButton(eleVba1, dataset);
+  eleVba1.addEventListener("click", async () => {
     eleWait.style.display = 'block';
     abortData = false;
-    let dataset = 'vba1';
-    let grpName = occInfo[dataset].description;
+    let grpName = occInfo[dataset].name;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
@@ -901,11 +911,12 @@ if (eleVba1) {
 }
 let eleVba2 = document.getElementById("getVba2");
 if (eleVba2) {
-    eleVba2.addEventListener("click", async () => {
+  let dataset = 'vba2';
+  addIconToButton(eleVba2, dataset);
+  eleVba2.addEventListener("click", async () => {
     eleWait.style.display = 'block';
     abortData = false;
-    let dataset = 'vba2';
-    let grpName = occInfo[dataset].description;
+    let grpName = occInfo[dataset].name;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
@@ -916,11 +927,13 @@ if (eleVba2) {
     eleWait.style.display = 'none';
   });
 }
-if (document.getElementById("getTest")) {
-  document.getElementById("getTest").addEventListener("click", async () => {
+let eleTest = document.getElementById("getTest");
+if (eleTest) {
+  let dataset = 'test';
+  addIconToButton(eleTest, dataset);
+  eleTest.addEventListener("click", async () => {
     eleWait.style.display = 'block';
     abortData = false;
-    let dataset = 'test';
     if (geoJsonData) {await addGeoJsonOccurrences(dataset);
     } else {await getJsonFileData(dataset);}
     eleWait.style.display = 'none';

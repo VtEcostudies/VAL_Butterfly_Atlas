@@ -4,11 +4,11 @@ let gbifApi = "https://api.gbif.org/v1";
 let datasetKeys = {"vba1":"0901cecf-55f1-447e-8537-1f7b63a865a0"};
 let butterflies = "taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999";
 export const occInfo = {
-    'vtb1':{geoJson:'geojson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','description':'Obs <2001','icon':'diamond','color':'Red'},
-    'vtb2':{geoJson:'geojson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','description':'Obs 2008-2022','icon':'round','color':'GreenYellow'},
-    'vba1':{geoJson:'geojson/vba1_occs_2002-2007.geojson','json':'occjson/vba1_occs_2002-2007.json','description':'Butterfly Atlas 1','icon':'square','color':'Cyan'},
-    'vba2':{geoJson:'geojson/vba2_occs_2023-2028.geojson','json':'occjson/vba2_occs_2023-2028.json','description':'Butterfly Atlas 2','icon':'diamond','color':'Blue'},
-    'test':{geoJson:'geojson/test.geojson','json':'occjson/test.json','description':'test dataset','icon':'triangle','color':'Red','data':false}
+    'vtb1':{geoJson:'geojson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','name':'Obs <2002','icon':'diamond','color':'Blue'},
+    'vtb2':{geoJson:'geojson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','name':'Obs 2008-2022','icon':'round','color':'GreenYellow'},
+    'vba1':{geoJson:'geojson/vba1_occs_2002-2007.geojson','json':'occjson/vba1_occs_2002-2007.json','name':'Butterfly Atlas 1','icon':'square','color':'Red'},
+    'vba2':{geoJson:'geojson/vba2_occs_2023-2028.geojson','json':'occjson/vba2_occs_2023-2028.json','name':'Butterfly Atlas 2','icon':'triangle','color':'Cyan'},
+    'test':{geoJson:'geojson/test.geojson','json':'occjson/test.json','name':'test dataset','icon':'triangle','color':'Cyan'}
 };
 export var occData = {
     'vtb1':{},
