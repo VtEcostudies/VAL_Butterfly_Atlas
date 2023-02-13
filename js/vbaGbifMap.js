@@ -33,7 +33,7 @@ var occGroup = false; //geoJson occurrence group
 var baseMapDefault = null;
 var abortData = false;
 var eleWait = document.getElementById("wait-overlay");
-var geoJsonData = true;
+var geoJsonData = false;
 var bindPopups = false;
 var bindToolTips = false;
 var iconMarkers = false;
@@ -148,10 +148,10 @@ function setZoomInfo() {
 }
 
 async function zoomVT() {
-  geoGroup.eachLayer(layer => {
+  geoGroup.eachLayer(async layer => {
     if ('State'==layer.options.name) {
       console.log('zoomVT found GeoJson layer', layer.options.name);
-      valMap.fitBounds(layer.getBounds());
+      await valMap.fitBounds(layer.getBounds());
     }
   })
 }
@@ -301,8 +301,6 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
   let grpName = occInfo[dataset].description;
   let idGrpName = grpName.split(' ').join('_');
 
-  eleWait.style.display = "block";
-
   if (groupLayerControl === false) {
     console.log('Adding groupLayerControl to map.')
     groupLayerControl = L.control.layers().addTo(valMap);
@@ -345,11 +343,8 @@ async function addGeoJsonOccurrences(dataset='test', layerId=0) {
     cmCount[grpName] = json.features.length;
     cmTotal[grpName] = json.features.length;
     groupLayerControl.addOverlay(layer, `<label id="${idGrpName}">${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})</label>`);
-    eleWait.style.display = "none";
   } catch(err) {
     console.log('Error loading file', occInfo[dataset].geoJson, err);
-    eleWait.style.display = "none";
-    //alert(err.message);
   }
 }
 
@@ -432,6 +427,7 @@ function getIntersectingFeatures(e) {
   There is a performance hit, still, because we have to hang popup data on the marker when it's created.
 */
 async function markerOnClick(e) {
+  eleWait.style.display = 'block';
   //console.log('markerOnClick e.latlng:', e.latlng, e.target.options);
   //console.log('markerOnClick e.target.options:', e.target.options);
 
@@ -442,6 +438,8 @@ async function markerOnClick(e) {
     .setContent(await occurrencePopupInfo(e.target.options))
     .setLatLng(e.latlng)
     .openOn(valMap);
+
+    eleWait.style.display = 'none';
 }
 
 /*
@@ -491,7 +489,6 @@ async function addOccsToMap(occJsonArr=[], dataset) {
   let idGrpName = grpName.split(' ').join('_');
   cmTotal[grpName] = 0; //cmTotal[groupField] = 0;
   if (!occJsonArr.length) return;
-  eleWait.style.display = "block";
   //for (var i = 0; i < occJsonArr.length; i++) {var occJson = occJsonArr[i]; //synchronous loop
   occJsonArr.forEach(async occJson => { //asynchronous loop
       //let grpName = groupField; //begin by assigning all occs to same group
@@ -603,7 +600,6 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})<div class="${grpIcon}-small"></div></div>`;
     }
   });
-  eleWait.style.display = "none";
 }
 
 async function occurrencePopupInfo(occRecord) {
@@ -773,14 +769,14 @@ function showUrlInfo(dataset='vba1') {
 /*
  * Clear any markers from the map
  */
-function clearData() {
+async function clearData() {
   cmCount['all'] = 0;
   //remove all circleMarkers from each group by clearing the layer
-  Object.keys(cmGroup).forEach((key) => {
+  Object.keys(cmGroup).forEach(async (key) => {
       console.log(`Clear layer '${key}'`);
-      cmGroup[key].clearLayers();
+      await cmGroup[key].clearLayers();
       console.log(`Remove control layer for '${key}'`);
-      if (groupLayerControl) groupLayerControl.removeLayer(cmGroup[key]);
+      if (groupLayerControl) await groupLayerControl.removeLayer(cmGroup[key]);
       delete cmGroup[key];
       delete cmCount[key];
       delete cmTotal[key];
@@ -839,71 +835,103 @@ if (document.getElementById("iconMarkers")) {
     console.log('dataType Click', eleIcon.checked, iconMarkers);
   });
 }
-if (document.getElementById("getVtb1")) {
-  document.getElementById("getVtb1").addEventListener("click", async () => {
+async function toggleOccLayer(dataset) {
+  let grpName = occInfo[dataset].description;
+  console.log('toggleOccLayer', grpName, cmGroup[grpName], cmGroup)
+  if (cmGroup.hasLayer(grpName)) {
+    eleVtb1.classList.remove('button-active');
+    cmGroup.removeLayer(grpName);
+  } else {
+    eleVtb1.classList.add('button-active');
+    cmGroup.addLayer(grpName);
+  }
+}
+let eleVtb1 = document.getElementById("getVtb1");
+if (eleVtb1) {
+  eleVtb1.addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
     let dataset = 'vtb1';
     let grpName = occInfo[dataset].description;
-    console.log('LOAD VTB1', grpName, cmGroup[grpName], cmGroup)
     if (cmGroup[grpName]) {
+      console.log('Dataset already loaded.');
+      //toggleOccLayer(dataset);
       alert('Dataset already loaded.');
     } else {
-      if (geoJsonData) {addGeoJsonOccurrences(dataset);
-      } else {getJsonFileData(dataset);}
+      eleVtb1.classList.add('button-active');
+      if (geoJsonData) {await addGeoJsonOccurrences(dataset);
+      } else {await getJsonFileData(dataset);}
     }
+    eleWait.style.display = 'none';
   });
 }
-if (document.getElementById("getVtb2")) {
-  document.getElementById("getVtb2").addEventListener("click", () => {
+let eleVtb2 = document.getElementById("getVtb2");
+if (eleVtb2) {
+  eleVtb2.addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
     let dataset = 'vtb2';;
     let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
-      if (geoJsonData) {addGeoJsonOccurrences(dataset);
-      } else {getJsonFileData(dataset);}
+      eleVtb2.classList.add('button-active');
+      if (geoJsonData) {await addGeoJsonOccurrences(dataset);
+      } else {await getJsonFileData(dataset);}
     }
+    eleWait.style.display = 'none';
   });
 }
-if (document.getElementById("getVba1")) {
-  document.getElementById("getVba1").addEventListener("click", () => {
+let eleVba1 = document.getElementById("getVba1");
+if (eleVba1) {
+    eleVba1.addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
     let dataset = 'vba1';
     let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
-      if (geoJsonData) {addGeoJsonOccurrences(dataset);
-      } else {getJsonFileData(dataset);}
+      eleVba1.classList.add('button-active');
+      if (geoJsonData) {await addGeoJsonOccurrences(dataset);
+      } else {await getJsonFileData(dataset);}
     }
+    eleWait.style.display = 'none';
   });
 }
-if (document.getElementById("getVba2")) {
-  document.getElementById("getVba2").addEventListener("click", () => {
+let eleVba2 = document.getElementById("getVba2");
+if (eleVba2) {
+    eleVba2.addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
     let dataset = 'vba2';
     let grpName = occInfo[dataset].description;
     if (cmGroup[grpName]) {
       alert('Dataset already loaded.');
     } else {
-      if (geoJsonData) {addGeoJsonOccurrences(dataset);
-      } else {getJsonFileData(dataset);}
+      eleVba2.classList.add('button-active');
+      if (geoJsonData) {await addGeoJsonOccurrences(dataset);
+      } else {await getJsonFileData(dataset);}
     }
+    eleWait.style.display = 'none';
   });
 }
 if (document.getElementById("getTest")) {
-  document.getElementById("getTest").addEventListener("click", () => {
+  document.getElementById("getTest").addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
     let dataset = 'test';
-    if (geoJsonData) {addGeoJsonOccurrences(dataset);
-    } else {getJsonFileData(dataset);}
+    if (geoJsonData) {await addGeoJsonOccurrences(dataset);
+    } else {await getJsonFileData(dataset);}
+    eleWait.style.display = 'none';
   });
 }
 if (document.getElementById("clearData")) {
-  document.getElementById("clearData").addEventListener("click", () => {
+  document.getElementById("clearData").addEventListener("click", async () => {
+    eleWait.style.display = 'block';
     abortData = false;
-    clearData();
+    await clearData();
+    eleWait.style.display = 'none';
   });
 }
 if (document.getElementById("abortData")) {
@@ -911,10 +939,11 @@ if (document.getElementById("abortData")) {
       abortData = true;
   });
 }
-if (document.getElementById("test")) {
-  document.getElementById("test").addEventListener("click", () => {
-    console.log("test button click.");
-    getBlockSignups();
+if (document.getElementById("getSign")) {
+  document.getElementById("getSign").addEventListener("click", async () => {
+    eleWait.style.display = 'block';
+    await getBlockSignups();
     //putSignups(sheetSignUps);
+    eleWait.style.display = 'none';
   });
 }

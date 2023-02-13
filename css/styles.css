@@ -1,3 +1,16 @@
+.fa-circle {
+  color: greenyellow;
+}
+.fa-square {
+  color: red;
+}
+.fa-caret-up { /*aka traingle*/
+  color: cyan;
+  height: 20px;
+}
+.fa-diamond {
+  color: blue;
+}
 
 .cluster-count {
   width: 30px;
@@ -126,11 +139,13 @@ html, body, #mapid, .row-fluid{
 .map-button {
   display: block;
   height: 30px;
+  min-width: 105px;
 }
 
-.btn .btn-primary .map-button {
-  font-size: 8px;
-  font-weight: 10;
+.map-button:active, .button-active {
+  transform: translate(2px, 0px);
+  background-color: green;
+  color: yellow;
 }
 
 #lbl-wrapper {
