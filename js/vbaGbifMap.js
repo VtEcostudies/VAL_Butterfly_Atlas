@@ -87,14 +87,8 @@ function addMap() {
 
     var esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
         id: 'esri.topo',
-        maxZoom: 20,
+        maxZoom: 19,
         attribution: 'Tiles &copy; Esri' // &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
-      });
-
-    var openTopo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        id: 'open.topo',
-        maxZoom: 17,
-        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
       });
 
     baseMapDefault = esriTopo; //for use elsewhere, if necessary
@@ -108,7 +102,6 @@ function addMap() {
     basemapLayerControl.addBaseLayer(satellite, "Mapbox Satellite");
     basemapLayerControl.addBaseLayer(esriWorld, "ESRI Imagery");
     basemapLayerControl.addBaseLayer(esriTopo, "ESRI Topo Map");
-    basemapLayerControl.addBaseLayer(openTopo, "Open Topo Map");
 
     console.log('done adding basemaps');
 
