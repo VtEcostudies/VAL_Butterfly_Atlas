@@ -428,18 +428,44 @@ function getIntersectingFeatures(e) {
 */
 async function markerOnClick(e) {
   eleWait.style.display = 'block';
-  //console.log('markerOnClick e.latlng:', e.latlng, e.target.options);
-  //console.log('markerOnClick e.target.options:', e.target.options);
+
+  let options = e.target ? e.target.options : e.options;
+  let latlng = e.latlng ? e.latlng : e._latlng;
+
+  //console.log('markerOnClick', latlng, options);
 
   var popup = L.popup({
     maxHeight: 200,
     keepInView: true
     })
-    .setContent(await occurrencePopupInfo(e.target.options))
-    .setLatLng(e.latlng)
+    .setContent(await occurrencePopupInfo(options))
+    .setLatLng(latlng)
     .openOn(valMap);
 
     eleWait.style.display = 'none';
+}
+
+async function markerMouseOver(e) {
+  //console.log('markerMouseOver', e);
+  let options = e.target.options;
+  let content = `
+    <b><u>${options.canonicalName}</u></b><br>
+    ${options.recordedBy}<br>
+    ${moment(options.eventDate).format('YYYY-MM-DD')}<br>
+    `;
+  e.target.bindTooltip(content).openTooltip();
+}
+
+async function clusterOnClick(e) {
+  //console.log('clusterOnClick | target.options:', e.target.options);
+  console.log('clusterOnClick | childMarkerCount:', e.layer.getAllChildMarkers().length);
+  /*
+  if (valMap.getZoom()==valMap.getMaxZoom()) {
+    e.layer.getAllChildMarkers().forEach(async (mark, idx) => {
+      console.log('child marker', idx, mark.options);
+    })
+  }
+  */
 }
 
 /*
@@ -545,6 +571,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         if (occJson.taxonKey) marker.options.taxonKey = occJson.taxonKey;
         marker.options.canonicalName = canName ? canName : occJson.scientificName;
         marker.on('click', markerOnClick);
+        marker.on('mouseover', markerMouseOver);
       }
       if (bindToolTips) {
         if (occJson.eventDate) {
@@ -555,8 +582,8 @@ async function addOccsToMap(occJsonArr=[], dataset) {
       }
 
       let clusterOptions = {
-        disableClusteringAtZoom: 18,
-        spiderfyOnMaxZoom: false,
+        //disableClusteringAtZoom: 18, //this disables spiderfy, which is necessary to pull-apart stacked, same-location markers
+        //spiderfyOnMaxZoom: false, //this does exactly what we want, it pulls apart max-zoom clusters into their markers
         maxClusterRadius: 40,
         iconCreateFunction: function(cluster) {
           return L.divIcon(getClusterIconOptions(grpIcon, cluster));
@@ -569,6 +596,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         console.log(`cmGroup[${grpName}] is undefined...adding.`);
         if (clusterMarkers) {
           cmGroup[grpName] = L.markerClusterGroup(clusterOptions).addTo(valMap);
+          cmGroup[grpName].on('clusterclick', clusterOnClick);
         } else {
           cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
         }
@@ -579,7 +607,6 @@ async function addOccsToMap(occJsonArr=[], dataset) {
           groupLayerControl.setPosition("bottomright");
           groupLayerControl.addOverlay(cmGroup[grpName], grpHtml);
         }
-      
         cmGroup[grpName].addLayer(marker); //add this marker to the current layerGroup, which is an object with possibly multiple layerGroups by sciName
       } else {
         cmGroup[grpName].addLayer(marker); //add this marker to the current layerGroup, which is an object with possibly multiple layerGroups by sciName

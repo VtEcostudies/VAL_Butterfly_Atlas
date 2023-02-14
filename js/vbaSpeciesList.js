@@ -85,7 +85,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
         if ('GENUS'==taxRank && !objGnus[taxGnus]) {
             objSpcs[taxGnus] = {
                 'acceptedTaxonKey': arrOccs[i].acceptedTaxonKey,
-                'scientificName': sciName,
+                'scientificName': taxGnus, //sciName,
                 'taxonRank': taxRank,
                 'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                 'image': false,
