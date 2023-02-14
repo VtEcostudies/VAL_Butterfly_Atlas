@@ -835,7 +835,7 @@ if (document.getElementById("iconMarkers")) {
     console.log('dataType Click', eleIcon.checked, iconMarkers);
   });
 }
-/* And attempt to use the data-load buttons as toggle-buttons to show/hide layers. Abandoned, not necessary. */
+/* An attempt to use the data-load buttons as toggle-buttons to show/hide layers. Abandoned, not necessary. */
 async function toggleOccLayer(dataset) {
   let grpName = occInfo[dataset].name;
   console.log('toggleOccLayer', grpName, cmGroup[grpName], cmGroup)
