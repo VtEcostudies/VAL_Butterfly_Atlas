@@ -1,8 +1,9 @@
 import { fetchJsonFile } from "./commonUtilities.js";
 
 let gbifApi = "https://api.gbif.org/v1";
-let datasetKeys = {"vba1":"0901cecf-55f1-447e-8537-1f7b63a865a0"};
-let butterflies = "taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999";
+export const datasetKeys = {"vba1":"0901cecf-55f1-447e-8537-1f7b63a865a0"};
+export const gadmGids = {vt:'USA.46_1'};
+export const butterflyKeys = "taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999";
 export const occInfo = {
     'vtb1':{geoJson:'geojson/vtb1_occs_1000-2001.geojson','json':'occjson/vtb1_occs_1000-2001.json','name':'Obs <2002','icon':'diamond','color':'Blue'},
     'vtb2':{geoJson:'geojson/vtb2_occs_2008-2022.geojson','json':'occjson/vtb2_occs_2008-2022.json','name':'Obs 2008-2022','icon':'round','color':'GreenYellow'},
@@ -27,29 +28,30 @@ https://api.gbif.org/v1/occurrence/search
     ?datasetKey=0901cecf-55f1-447e-8537-1f7b63a865a0
     &geometry=POLYGON((-73.0%2044.0,%20-72.75%2044.0,%20-72.75%2044.2,%20-73.0%2044.2,%20-73.0%2044.0))
 */
-export async function getOccsByFilters(offset=0, limit=300, datasetKey=false, geometryWKT=false, gadmGid=false, taxonKeys=false) {
+export async function getOccsByFilters(offset=0, limit=300, dataset=false, geomWKT=false, gadmGid=false, taxonKeys=false, yearRange=false) {
 let reqHost = gbifApi;
 let reqRoute = "/occurrence/search?advanced=1";
-let reqData = datasetKey ? `&datasetKey=${datasetKey}` : '';
-let reqGeom = geometryWKT ? `&geometry=${geometryWKT}` : '';
+let reqDset = dataset && datasetKeys[dataset] ? `&datasetKey=${datasetKeys[dataset]}` : '';
+let reqGeom = geomWKT ? `&geometry=${geomWKT}` : '';
 let reqGadm = gadmGid ? `&gadmGid=${gadmGid}` : '';
 let reqTaxa = taxonKeys ? `&${taxonKeys}` : '';
+let reqYears = yearRange ? `&year=${yearRange}` : '';
 let reqLimits = `&offset=${offset}&limit=${limit}`;
-let url = reqHost+reqRoute+reqData+reqGeom+reqGadm+reqTaxa+reqLimits;
+let url = reqHost+reqRoute+reqDset+reqGeom+reqGadm+reqTaxa+reqYears+reqLimits;
 let enc = encodeURI(url);
 
-console.log(`getOccsByFilters(${offset}, ${limit}, ${datasetKey}, ${geometryWKT}, ${gadmGid}) QUERY:`, enc);
+console.log(`getOccsByFilters(${offset}, ${limit}, ${dataset}, ${geomWKT}, ${gadmGid}) QUERY:`, enc);
 
     try {
         let res = await fetch(enc);
-        //console.log(`getOccsByFilters(${offset}, ${limit}, ${datasetKey}, ${geometryWKT}, ${gadmGid}) RAW RESULT:`, res);
+        //console.log(`getOccsByFilters(${offset}, ${limit}, ${dataset}, ${geomWKT}, ${gadmGid}) RAW RESULT:`, res);
         let json = await res.json();
-        //console.log(`getOccsByFilters(${offset}, ${limit}, ${datasetKey}, ${geometryWKT}, ${gadmGid}) JSON RESULT:`, json);
+        //console.log(`getOccsByFilters(${offset}, ${limit}, ${dataset}, ${geomWKT}, ${gadmGid}) JSON RESULT:`, json);
         json.query = enc;
         return json;
     } catch (err) {
         err.query = enc;
-        console.log(`getOccsByFilters(${offset}, ${limit}, ${datasetKey}, ${geometryWKT}, ${gadmGid}) ERROR:`, err);
+        console.log(`getOccsByFilters(${offset}, ${limit}, ${dataset}, ${geomWKT}, ${gadmGid}) ERROR:`, err);
         return new Error(err)
     }
 }

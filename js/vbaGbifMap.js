@@ -4,7 +4,7 @@
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
-import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo } from './fetchGbifOccs.js';
+import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, gadmGids, butterflyKeys } from './fetchGbifOccs.js';
 import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
 import { getSheetSignups, sheetVernacularNames } from './fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from './fetchGbifSpecies.js';
@@ -449,6 +449,9 @@ async function markerMouseOver(e) {
   e.target.bindTooltip(content).openTooltip();
 }
 
+/*
+  Respond to a click on a leaflet.cluster group
+*/
 async function clusterOnClick(e) {
   //console.log('clusterOnClick | target.options:', e.target.options);
   console.log('clusterOnClick | childMarkerCount:', e.layer.getAllChildMarkers().length);
@@ -459,6 +462,10 @@ async function clusterOnClick(e) {
     })
   }
   */
+  if (valMap.getZoom() < 15) {// && cluster.isStacked()) {
+    console.log('clusterOnClick | zoomFrom, zoomTo:', valMap.getZoom(), valMap.getZoom()+5);
+    valMap.setView(e.latlng, valMap.getZoom()+5);
+  }
 }
 
 /*
@@ -493,10 +500,11 @@ function getClusterIconOptions(grpIcon, cluster, sz=30) {
 }
 
 /*
-  This is partially refactored for larger datasets:
+  This is refactored for larger datasets:
   - don't hang tooltips on each point
   - don't hang popup on each point
   - externally, reduce dataset size by removing unnecessary columns
+  - use leaflet.cluster to manage zoom-level point rendering
 */
 //async function addOccsToMap(occJsonArr=[], groupField='datasetKey', grpIcon, grpColor='Red') {
 async function addOccsToMap(occJsonArr=[], dataset) {
@@ -763,13 +771,13 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   //putSignups(sheetSignUps);
 }
 
-async function getLiveData(dataset='vba1') {
+async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
   let page = {};
   let lim = 300;
   let off = 0;
-  let max = 1000;
+  let max = 9900;
   do {
-    page = await getOccsByFilters(off, lim);
+    page = await getOccsByFilters(off, lim, dataset, geomWKT, gadmGid, taxonKeys, dateRange);
     addOccsToMap(page.results, dataset);
     off += lim;
   } while (!page.endOfRecords && !abortData && off<max);
@@ -942,7 +950,7 @@ if (eleVba2) {
     } else {
       eleVba2.classList.add('button-active');
       if (geoJsonData) {await addGeoJsonOccurrences(dataset);
-      } else {await getJsonFileData(dataset);}
+      } else {await getLiveData('vba2', false, gadmGids.vt, butterflyKeys, '2023,2028');}
     }
     eleWait.style.display = 'none';
   });
