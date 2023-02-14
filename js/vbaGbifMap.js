@@ -584,14 +584,14 @@ async function addOccsToMap(occJsonArr=[], dataset) {
 
       let clusterOptions = {
         //disableClusteringAtZoom: 18, //this disables spiderfy, which is necessary to pull-apart stacked, same-location markers
-        //spiderfyOnMaxZoom: false, //this does exactly what we want, it pulls apart max-zoom clusters into their markers
+        //spiderfyOnMaxZoom: false, //Leave enabled! This does exactly what we want, it pulls apart max-zoom clusters into their markers.
         maxClusterRadius: 40,
         iconCreateFunction: function(cluster) {
           return L.divIcon(getClusterIconOptions(grpIcon, cluster));
         }
       };
       let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
-      let grpHtml = `<div class="layerControlItem" id="${idGrpName}"><i class="fa fa-${faIcon} "></i>${grpName}</div>`;
+      let grpHtml = `<div class="layerControlItem" id="${idGrpName}"><i class="fa fa-${faIcon} "></i>${grpName}<span id="groupCount-${idGrpName}">&nbsp(<u><b>${cmCount[grpName]}</u></b>)</span></div>`;
       
       if (typeof cmGroup[grpName] === 'undefined') {
         console.log(`cmGroup[${grpName}] is undefined...adding.`);
@@ -618,16 +618,13 @@ async function addOccsToMap(occJsonArr=[], dataset) {
       document.getElementById("jsonResults").innerHTML += ` | records mapped: ${cmCount['all']}`;
   }
 
-  //cmGroup's keys are sciNames or dataset names
+  //cmGroup's keys are sciNames or datasets or whatever groupField was requested
   //each layer's control label's id=idGrpName has spaces replaced with underscores
-  var id = null;
   Object.keys(cmGroup).forEach((grpName) => {
-    let idGrpName = grpName.split(' ').join('_');
-    if (document.getElementById(idGrpName)) {
-        console.log(`-----match----->> ${idGrpName} | ${grpName}`, cmCount[grpName], cmTotal[grpName]);
-        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]}/${cmTotal[grpName]})</div>`;
-        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})</div>`;
-        //document.getElementById(idGrpName).innerHTML = `<div id="${idGrpName}">${grpName} (${cmCount[grpName]})<div class="${grpIcon}-small"></div></div>`;
+    let idGrp = grpName.split(' ').join('_');
+    if (document.getElementById(idGrp)) {
+        console.log(`-----match----->> ${idGrp} | ${grpName}`, cmCount[grpName], cmTotal[grpName]);
+        document.getElementById(`groupCount-${idGrp}`).innerHTML = `&nbsp(<u><b>${cmCount[grpName]}</b></u>)`;
     }
   });
 }
@@ -820,11 +817,12 @@ async function clearDataSet(dataset=false) {
   if (!dataset) return;
 
   let key = occInfo[dataset].name;
+  await cmGroup[key].clearLayers();
+  if (groupLayerControl) await groupLayerControl.removeLayer(cmGroup[key]);
   delete cmGroup[key];
   delete cmCount[key];
   delete cmTotal[key];
   delete cgColor[key];
-  if (groupLayerControl) await groupLayerControl.removeLayer(cmGroup[key]);
 }
 
 function addMapCallbacks() {
@@ -945,9 +943,12 @@ if (eleVba2) {
     eleWait.style.display = 'block';
     abortData = false;
     let grpName = occInfo[dataset].name;
+    let load = true;
     if (cmGroup[grpName]) {
-      alert('Dataset already loaded.');
-    } else {
+      load = confirm('Dataset already loaded. Reload?');
+      if (load) {await clearDataSet('vba2');}
+    }
+    if (load) {
       eleVba2.classList.add('button-active');
       if (geoJsonData) {await addGeoJsonOccurrences(dataset);
       } else {await getLiveData('vba2', false, gadmGids.vt, butterflyKeys, '2023,2028');}

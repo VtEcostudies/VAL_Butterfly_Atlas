@@ -8,7 +8,7 @@
 }
 .triangle-button { /* only way I could find to move 2x icon/text up was to go absolute. */
   position: absolute;
-  left: 10px;
+  left: 5px;
   transform: translateY(-15px);
 }
 .fa {
