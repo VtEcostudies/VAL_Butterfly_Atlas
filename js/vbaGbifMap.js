@@ -200,7 +200,12 @@ function onGeoBoundaryFeature(feature, layer) {
       for (var key in obj) { //iterate over feature properties
         switch(key.toLowerCase()) {
           case 'blockname':
-            //getBlockSignups();
+            tips = `${obj[key]}<br>`;
+            let block = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+            if (sheetSignUps[block]) {
+              tips += `${sheetSignUps[block].first} ${sheetSignUps[block].last}`;
+            }
+            break;
           case 'townname':
           case 'cntyname':
             tips = `${obj[key]}<br>`;
