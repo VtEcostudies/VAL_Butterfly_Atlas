@@ -460,16 +460,33 @@ async function markerMouseOver(e) {
 async function clusterOnClick(e) {
   //console.log('clusterOnClick | target.options:', e.target.options);
   //console.log('clusterOnClick | childMarkerCount:', e.layer.getAllChildMarkers().length);
-  console.log('clusterOnClick | cluster layer:', e.layer);
-  
-  if (valMap.getZoom() < 15) {// && cluster.isStacked()) {
-    //console.log('clusterOnClick | zoomFrom, zoomTo:', valMap.getZoom(), valMap.getZoom()+5);
-    valMap.setView(e.latlng, valMap.getZoom()+5);
+  //console.log('clusterOnClick | cluster:', e.layer);
+
+  let cluster = e.layer
+  let bottomCluster = cluster;
+
+  while (bottomCluster._childClusters.length === 1) {
+    bottomCluster = bottomCluster._childClusters[0];
+  }
+
+  if (bottomCluster._zoom === this._maxZoom && bottomCluster._childCount === cluster._childCount) {
+    // All child markers are contained in a single cluster from this._maxZoom to this cluster.
+    //console.log('clusterOnClick | Cluster will Spiderfy');
+    if (valMap.getZoom() < 15) {
+      //valMap.setView(e.latlng, 15); //valMap.getZoom()+5
+    }
+  } else {
+    //console.log(`clusterOnClick | Cluster will Zoom`);
+  }
+
+  if (cluster._group._spiderfied) {
+    //console.log('clusterOnClick | Cluster IS Spiderfied. Unspiderfy.');
+    cluster.unspiderfy();
   }
 }
 
 async function clusterOnSpiderfied(e) {
-  console.log('clusterOnSpiderfied | e:', e);
+  //console.log('clusterOnSpiderfied | e:', e);
 
   let list = `<b><u>${e.markers.length} Occurrences</u></b><br>`;
 
