@@ -445,11 +445,11 @@ async function markerOnClick(e) {
 
 async function markerMouseOver(e) {
   //console.log('markerMouseOver', e);
-  let options = e.target.options;
+  let o = e.target.options;
   let content = `
-    <b><u>${options.canonicalName}</u></b><br>
-    ${options.recordedBy}<br>
-    ${moment(options.eventDate).format('YYYY-MM-DD')}<br>
+    <b><u>${o.canonicalName}</u></b><br>
+    ${o.recordedBy ? o.recordedBy : 'Unknown'}<br>
+    ${moment(o.eventDate).format('YYYY-MM-DD')}<br>
     `;
   e.target.bindTooltip(content).openTooltip();
 }
@@ -459,18 +459,33 @@ async function markerMouseOver(e) {
 */
 async function clusterOnClick(e) {
   //console.log('clusterOnClick | target.options:', e.target.options);
-  console.log('clusterOnClick | childMarkerCount:', e.layer.getAllChildMarkers().length);
-  /*
-  if (valMap.getZoom()==valMap.getMaxZoom()) {
-    e.layer.getAllChildMarkers().forEach(async (mark, idx) => {
-      console.log('child marker', idx, mark.options);
-    })
-  }
-  */
+  //console.log('clusterOnClick | childMarkerCount:', e.layer.getAllChildMarkers().length);
+  console.log('clusterOnClick | cluster layer:', e.layer);
+  
   if (valMap.getZoom() < 15) {// && cluster.isStacked()) {
-    console.log('clusterOnClick | zoomFrom, zoomTo:', valMap.getZoom(), valMap.getZoom()+5);
+    //console.log('clusterOnClick | zoomFrom, zoomTo:', valMap.getZoom(), valMap.getZoom()+5);
     valMap.setView(e.latlng, valMap.getZoom()+5);
   }
+}
+
+async function clusterOnSpiderfied(e) {
+  console.log('clusterOnSpiderfied | e:', e);
+
+  let list = `<b><u>${e.markers.length} Occurrences</u></b><br>`;
+
+  e.markers.forEach(async (mark, idx) => {
+    //console.log('child marker', idx, mark.options);
+    let o = mark.options;
+    list += `<a href="https://gbif.org/occurrence/${o.gbifID}">${o.gbifID}</a>: ${o.canonicalName}, ${moment(o.eventDate).format('YYYY-MM-DD')}, ${o.recordedBy ? o.recordedBy : 'Unknown'}<br>`;
+    })
+
+  var popup = L.popup({
+    maxHeight: 200,
+    keepInView: false
+    })
+    .setContent(list)
+    .setLatLng(e.cluster._latlng)
+    .openOn(valMap);
 }
 
 /*
@@ -603,6 +618,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         if (clusterMarkers) {
           cmGroup[grpName] = L.markerClusterGroup(clusterOptions).addTo(valMap);
           cmGroup[grpName].on('clusterclick', clusterOnClick);
+          cmGroup[grpName].on('spiderfied', clusterOnSpiderfied);
         } else {
           cmGroup[grpName] = L.layerGroup().addTo(valMap); //create a new, empty, single-species layerGroup to be populated with points
         }
@@ -648,13 +664,13 @@ async function occurrencePopupInfo(occRecord) {
                 break;
             case 'gbifID':
             case 'key':
-                info += `<a href="https://www.gbif.org/occurrence/${occRecord[key]}" target="_blank">GBIF Occurrence Record </a><br/>`;
+                info += `<a href="https://www.gbif.org/occurrence/${occRecord[key]}" target="_blank">GBIF Occurrence ${occRecord[key]}</a><br/>`;
                 break;
             case 'decimalLatitude':
-                info += `Lat: ${occRecord[key]}<br/>`;
+                //info += `Lat: ${occRecord[key]}<br/>`;
                 break;
             case 'decimalLongitude':
-                info += `Lon: ${occRecord[key]}<br/>`;
+                //info += `Lon: ${occRecord[key]}<br/>`;
                 break;
             case 'scientificName':
                 info += `Scientific Name: ${occRecord[key]}<br/>`;
