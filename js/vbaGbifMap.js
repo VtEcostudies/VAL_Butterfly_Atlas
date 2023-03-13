@@ -40,11 +40,23 @@ var iconMarkers = false;
 var clusterMarkers = true;
 var sheetSignUps = false; //array of survey blocks that have been signed up
 var signupStyle = {
-  color: "black",
-  weight: 1,
+  color: "red", //"black",
+  weight: 2,
   fillColor: "green",
-  fillOpacity: 0.5,
+  fillOpacity: 0.0,
   disabled: true
+};
+var priorityStyle = {
+  color: "yellow", //border color
+  weight: 2,
+  fillColor: "yellow",
+  fillOpacity: 0.0
+};
+var nonPriorStyle = {
+  color: "blue",
+  weight: 0,
+  fillColor: "blue",
+  fillOpacity: 0.0
 };
 
 //for standalone use
@@ -91,7 +103,17 @@ function addMap() {
         attribution: 'Tiles &copy; Esri' // &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
       });
 
-    baseMapDefault = esriTopo; //for use elsewhere, if necessary
+    var googleSat = L.tileLayer("https://{s}.google.com/vt/lyrs=s,h&hl=tr&x={x}&y={y}&z={z}",
+      {
+        id: 'google.sat', //illegal property
+        name: 'Google Satellite +', //illegal property
+        subdomains: ["mt0", "mt1", "mt2", "mt3"],
+        zIndex: 0,
+        maxNativeZoom: 20,
+        maxZoom: 20
+      });
+  
+    baseMapDefault = googleSat; //for use elsewhere, if necessary
     valMap.addLayer(baseMapDefault); //and start with that one
 
     if(basemapLayerControl === false) {
@@ -102,6 +124,7 @@ function addMap() {
     basemapLayerControl.addBaseLayer(satellite, "Mapbox Satellite");
     basemapLayerControl.addBaseLayer(esriWorld, "ESRI Imagery");
     basemapLayerControl.addBaseLayer(esriTopo, "ESRI Topo Map");
+    basemapLayerControl.addBaseLayer(googleSat, "Google Satellite+");
 
     console.log('done adding basemaps');
 
@@ -109,6 +132,18 @@ function addMap() {
 
     valMap.on("zoomend", e => onZoomEnd(e));
     valMap.on("overlayadd", e => MapOverlayAdd(e));
+    valMap.on("baselayerchange", e => MapBaseChange(e));
+}
+
+/*
+  Fired when an base map layer is selected through a layer control.
+*/
+function MapBaseChange(e) {
+  console.log('MapBaseChange', e.layer.options.id);
+  let id = e.layer.options.id;
+  if ('esri.topo' == id) {
+    priorityStyle.color = "blue";
+  }
 }
 
 /*
@@ -116,12 +151,14 @@ function addMap() {
   to the back so that point markers remain clickable, in the foreground.
 */
 function MapOverlayAdd(e) {
-  //console.log('MapOverlayAdd', e.layer.options.name);
+  console.log('MapOverlayAdd', e.layer.options.name);
   if (typeof e.layer.bringToBack === 'function') {e.layer.bringToBack();} //push the just-added layer to back
   geoGroup.eachLayer(layer => {
     console.log(`MapOverlayAdd found GeoJson layer:`, layer.options.name);
     if (layer.options.name != e.layer.options.name) {
       layer.bringToBack(); //push other overlays to back
+    } else {
+      
     }
   })
 }
@@ -262,14 +299,11 @@ function onGeoBoundaryStyle(feature) {
   if (feature.properties.BLOCK_TYPE) {
     let style;
     switch(feature.properties.BLOCK_TYPE) {
-      case 'PRIORITY1':
-        style = {color:"black", weight:1, fillOpacity:0.2, fillColor:"red"};
-        break;
       case 'PRIORITY':
-        style = {color:"black", weight:1, fillOpacity:0.2, fillColor:"yellow"};
+        style = priorityStyle;
         break;
       case 'NONPRIOR':
-        style = {color:"black", weight:1, fillOpacity:0.0, fillColor:"blue"};
+        style = nonPriorStyle;
         break;
     }
     //Check the signup array to see if block was chosen
@@ -529,9 +563,9 @@ function getClusterIconOptions(grpIcon, cluster, sz=30) {
     case 'diamond':
       html = `
         <div class="${cluster ? 'diamond-shape' : 'diamond-small'}">
-        <div class="diamond-count">${cluster ? cluster.getChildCount() : ''}</div>
+          <div class="diamond-count">${cluster ? cluster.getChildCount() : ''}</div>
         </div>`;
-    break;
+      break;
   }
   return {'html':html, 'className':name, 'iconSize':size}
 }
