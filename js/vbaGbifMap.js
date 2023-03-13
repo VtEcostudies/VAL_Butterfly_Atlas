@@ -40,7 +40,7 @@ var iconMarkers = false;
 var clusterMarkers = true;
 var sheetSignUps = false; //array of survey blocks that have been signed up
 var signupStyle = {
-  color: "red", //"black",
+  color: "red", //border color
   weight: 2,
   fillColor: "green",
   fillOpacity: 0.0,
@@ -48,13 +48,15 @@ var signupStyle = {
 };
 var priorityStyle = {
   color: "yellow", //border color
+  priColor: "yellow",
+  altColor: "blue",
   weight: 2,
   fillColor: "yellow",
   fillOpacity: 0.0
 };
 var nonPriorStyle = {
-  color: "blue",
-  weight: 0,
+  color: "grey", //border color
+  weight: 1,
   fillColor: "blue",
   fillOpacity: 0.0
 };
@@ -142,9 +144,9 @@ function MapBaseChange(e) {
   console.log('MapBaseChange', e.layer.options.id);
   let id = e.layer.options.id;
   if ('esri.topo' == id || 'mapbox.streets' ==  id) {
-    priorityStyle.color = "blue";
+    priorityStyle.color = priorityStyle.altColor; //"orange";
   } else {
-    priorityStyle.color = "yellow";
+    priorityStyle.color = priorityStyle.priColor; //"yellow";
   }
   geoGroup.eachLayer(layer => {
     layer.resetStyle();
@@ -318,13 +320,13 @@ function onGeoBoundaryStyle(feature) {
     return style;
   } else {
     if (feature.properties.BIOPHYSRG1) { //biophysical regions
-      return {color:"red", weight:1, fillOpacity:0.1, fillColor:"red"};
+      return {color:"red", weight:1, fillOpacity:0.0, fillColor:"red"};
     } else if (feature.properties.CNTYNAME) { //counties
-      return {color:"yellow", weight:1, fillOpacity:0.1, fillColor:"yellow"};
+      return {color:"yellow", weight:1, fillOpacity:0.0, fillColor:"yellow"};
     } else if (feature.properties.TOWNNAME) { //towns
-      return {color:"blue", weight:1, fillOpacity:0.1, fillColor:"blue"};
+      return {color:"blue", weight:1, fillOpacity:0.0, fillColor:"blue"};
     } else {
-      return {color:"black", weight:1, fillOpacity:0.1, fillColor:"black"};
+      return {color:"black", weight:1, fillOpacity:0.0, fillColor:"black"};
     }
   }
 }
