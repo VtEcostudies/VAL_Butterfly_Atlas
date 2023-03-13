@@ -105,7 +105,7 @@ function addMap() {
 
     var googleSat = L.tileLayer("https://{s}.google.com/vt/lyrs=s,h&hl=tr&x={x}&y={y}&z={z}",
       {
-        id: 'google.sat', //illegal property
+        id: 'google.satellite', //illegal property
         name: 'Google Satellite +', //illegal property
         subdomains: ["mt0", "mt1", "mt2", "mt3"],
         zIndex: 0,
@@ -141,9 +141,14 @@ function addMap() {
 function MapBaseChange(e) {
   console.log('MapBaseChange', e.layer.options.id);
   let id = e.layer.options.id;
-  if ('esri.topo' == id) {
+  if ('esri.topo' == id || 'mapbox.streets' ==  id) {
     priorityStyle.color = "blue";
+  } else {
+    priorityStyle.color = "yellow";
   }
+  geoGroup.eachLayer(layer => {
+    layer.resetStyle();
+  })
 }
 
 /*
@@ -157,8 +162,6 @@ function MapOverlayAdd(e) {
     console.log(`MapOverlayAdd found GeoJson layer:`, layer.options.name);
     if (layer.options.name != e.layer.options.name) {
       layer.bringToBack(); //push other overlays to back
-    } else {
-      
     }
   })
 }
