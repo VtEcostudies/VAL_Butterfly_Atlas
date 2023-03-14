@@ -168,9 +168,23 @@ function MapOverlayAdd(e) {
   })
 }
 
+function setZoomStyle() {
+  let z = valMap.getZoom();
+  let f = z < 12 ? 4/z : 0;
+  let w = z/4;
+  priorityStyle.fillOpacity = f;
+  signupStyle.fillOpacity = f;
+  priorityStyle.weight = w;
+  signupStyle.weight = w;
+  geoGroup.eachLayer(layer => {
+    layer.resetStyle();
+  })
+}
+
 function onZoomEnd(e) {
   zoomLevel = valMap.getZoom();
   zoomCenter = valMap.getCenter();
+  setZoomStyle();
   //SetEachPointRadius();
   setZoomInfo();
 }
@@ -843,6 +857,7 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   initGbifStandalone(layerPath, layerName, layerId);
   getBlockSignups();
   //putSignups(sheetSignUps);
+  setZoomStyle();
 }
 
 async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
@@ -956,7 +971,6 @@ async function addIconToButton(eleButn, dataset) {
   let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
   let faClas = 'triangle'==grpIcon ? 'triangle-button' : '';
   eleButn.innerHTML = `<span class="${faClas}"><i class="fa fa-${faIcon} "></i>${occInfo[dataset].name}</span>`;
-
 }
 let eleVtb1 = document.getElementById("getVtb1");
 if (eleVtb1) {
