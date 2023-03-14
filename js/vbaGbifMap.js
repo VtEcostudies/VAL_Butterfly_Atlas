@@ -33,6 +33,7 @@ var occGroup = false; //geoJson occurrence group
 var baseMapDefault = null;
 var abortData = false;
 var eleWait = document.getElementById("wait-overlay");
+var eleMapLabs = [document.getElementById("mapInfo1"),document.getElementById("mapInfo2"),document.getElementById("mapInfo3")];
 var geoJsonData = false;
 var bindPopups = false;
 var bindToolTips = false;
@@ -144,10 +145,16 @@ function MapBaseChange(e) {
   console.log('MapBaseChange', e.layer.options.id);
   let id = e.layer.options.id;
   if ('esri.topo' == id || 'mapbox.streets' ==  id) {
-    priorityStyle.color = priorityStyle.altColor; //"orange";
-  } else {
-    priorityStyle.color = priorityStyle.priColor; //"yellow";
-  }
+    priorityStyle.color = priorityStyle.altColor;
+    eleMapLabs.forEach(ele => {
+      ele.classList.remove('bg-contrast');
+      })
+    } else {
+    priorityStyle.color = priorityStyle.priColor;
+    eleMapLabs.forEach(ele => {
+      ele.classList.add('bg-contrast');
+      })
+    }
   geoGroup.eachLayer(layer => {
     layer.resetStyle();
   })

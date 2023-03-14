@@ -176,7 +176,11 @@ html, body, #mapid, .row-fluid{
 
 .map-label {
   display: block;
-  color: blue;
+  color: darkblue;
+}
+
+.bg-contrast {
+  color: yellow;
 }
 
 #wait-overlay {
