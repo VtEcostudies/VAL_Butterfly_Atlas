@@ -687,7 +687,8 @@ async function addOccsToMap(occJsonArr=[], dataset) {
           return L.divIcon(getClusterIconOptions(grpIcon, cluster));
         }
       };
-      let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+      //let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+      let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up' : grpIcon);
       let grpHtml = `<div class="layerControlItem" id="${idGrpName}"><i class="fa fa-${faIcon} "></i>${grpName}<span id="groupCount-${idGrpName}">&nbsp(<u><b>${cmCount[grpName]}</u></b>)</span></div>`;
       
       if (typeof cmGroup[grpName] === 'undefined') {
@@ -975,8 +976,10 @@ async function toggleOccLayer(dataset) {
 /* Add dataset's icon to a button in front of its text using icon definitions in occInfo */
 async function addIconToButton(eleButn, dataset) {
   let grpIcon = occInfo[dataset].icon;
-  let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
-  let faClas = 'triangle'==grpIcon ? 'triangle-button' : '';
+  //let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+  //let faClas = 'triangle'==grpIcon ? 'map-button icon-button triangle-button' : 'map-button icon-button';
+  let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up' : grpIcon);
+  let faClas = 'triangle'==grpIcon ? 'map-button icon-button' : 'map-button icon-button';
   eleButn.innerHTML = `<span class="${faClas}"><i class="fa fa-${faIcon} "></i>${occInfo[dataset].name}</span>`;
 }
 let eleVtb1 = document.getElementById("getVtb1");

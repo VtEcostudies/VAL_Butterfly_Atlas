@@ -6,11 +6,6 @@
 .layerControlItem { 
   display: inline; /* This inlines Leaflet's layer control items when they have grouped html elements, not just text. */
 }
-.triangle-button { /* only way I could find to move 2x icon/text up was to go absolute. */
-  position: absolute;
-  left: 5px;
-  transform: translateY(-15px);
-}
 .fa {
   padding-right: 3px;
 }
@@ -22,6 +17,8 @@
 }
 .fa-caret-up { /*aka triangle*/
   color: cyan;
+}
+.fa-caret-up .fa-2x { /*aka triangle*/
   transform: translateY(6px); /* caret-up fa-2x doubles button's text height, pushing vertical location downward... */
 }
 .fa-diamond {
@@ -160,10 +157,19 @@ html, body, #mapid, .row-fluid{
   vertical-align: middle;
 }
 
+.icon-button {
+  text-align: left;
+}
+
 .map-button:active, .button-active {
   transform: translate(2px, 0px);
   background-color: green;
   color: yellow;
+}
+
+.triangle-button { /* only way I could find to move 2x icon/text up was to go absolute. */
+  position: relative;
+  transform: translateY(-20%);
 }
 
 #lbl-wrapper {
