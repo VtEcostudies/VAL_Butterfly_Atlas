@@ -151,10 +151,9 @@ html, body, #mapid, .row-fluid{
 
 .map-button {
   display: block;
-  height: 30px;
+  /*height: 30px; let the buttons auto-size to the text and things work nicely*/
   min-width: 115px;
   text-align: center;
-  vertical-align: middle;
 }
 
 .icon-button {
