@@ -174,7 +174,8 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
                 break;
             case 'scientificName':
                 colObj = objRow.insertCell(colIdx++);
-                colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
+                //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${spcKey}" href="https://val.vtecostudies.org/species-profile?taxonName=${spcKey}">${val}</a>`;
                 break;
             case 'eventDate':
                 colObj = objRow.insertCell(colIdx++);
