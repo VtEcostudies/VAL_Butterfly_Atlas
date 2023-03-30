@@ -880,9 +880,12 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   let layerPath = 'geojson/surveyblocksWGS84_orig.geojson';
   let layerName = 'Survey Blocks';
   let layerId = 9;
-  await getBlockSignups(); //sets global array sheetSignups
   initGbifStandalone(layerPath, layerName, layerId); //on layer load, setStyle checks sheetSignups array for entries and self-styles
   setZoomStyle();
+  getBlockSignups() //sets global array sheetSignups
+    .then(signUps => {
+      putSignups(signUps);
+    })
 }
 
 async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
