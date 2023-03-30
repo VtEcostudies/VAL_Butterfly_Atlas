@@ -12,6 +12,7 @@ import { getWikiPage } from './wiki_page_data.js';
 
 var vtCenter = [43.916944, -72.668056]; //VT geo center, downtown Randolph
 var vtAltCtr = [43.858297, -72.446594]; //VT border center for the speciespage view, where px bounds are small and map is zoomed to fit
+var vtBottom = [43.0, -72.8];
 var zoomLevel = 8;
 var zoomCenter = vtCenter;
 var cmGroup = {}; //object of layerGroups of different species' markers grouped into layers
@@ -840,7 +841,7 @@ async function getBlockSignups() {
   //get an array of sheetSignUps by blockname with name and date
   sheetSignUps = await getSheetSignups();
   console.log('getBlockSignups', sheetSignUps);
-  putSignups(sheetSignUps);
+  return sheetSignUps;
 }
 
 function putSignups(sign) {
@@ -858,13 +859,29 @@ function putSignups(sign) {
   })
 }
 
+function listSignups(sign) {
+  let sCnt = Object.keys(sign).length;
+  let html = `<u><b>${sCnt} block sign-ups</b></u><br>`
+  for (const blk in sign) {
+    html += `${blk}: ${(sign[blk].first)} ${(sign[blk].last)}<br>`;
+  }
+  zoomVT();
+  let popup = L.popup({
+    maxHeight: 300,
+    minWidth: 250,
+    keepInView: true
+    })
+    .setContent(html)
+    .setLatLng(L.latLng(vtBottom))
+    .openOn(valMap);
+}
+
 if (document.getElementById("valSurveyBlocksVBA")) {
   let layerPath = 'geojson/surveyblocksWGS84_orig.geojson';
   let layerName = 'Survey Blocks';
   let layerId = 9;
-  initGbifStandalone(layerPath, layerName, layerId);
-  getBlockSignups();
-  //putSignups(sheetSignUps);
+  await getBlockSignups(); //sets global array sheetSignups
+  initGbifStandalone(layerPath, layerName, layerId); //on layer load, setStyle checks sheetSignups array for entries and self-styles
   setZoomStyle();
 }
 
@@ -1085,8 +1102,9 @@ if (document.getElementById("abortData")) {
 if (document.getElementById("getSign")) {
   document.getElementById("getSign").addEventListener("click", async () => {
     eleWait.style.display = 'block';
-    await getBlockSignups();
-    //putSignups(sheetSignUps);
+    sheetSignUps = await getBlockSignups();
     eleWait.style.display = 'none';
+    putSignups(sheetSignUps); //mark survey blocks as taken
+    listSignups(sheetSignUps); //popup list of signups
   });
 }
