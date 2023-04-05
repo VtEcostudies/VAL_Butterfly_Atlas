@@ -41,10 +41,21 @@ var bindToolTips = false;
 var iconMarkers = false;
 var clusterMarkers = true;
 var sheetSignUps = false; //array of survey blocks that have been signed up
-var signupStyle = {
-  color: "red", //border color
+var prioritySignupCount = 0; 
+var nonPriorSignupCount = 0;
+var priorityBlockCount = 0;
+var priorityBlockArray = [];
+var signupPriorityStyle = {
+  color: "green", //border color
   weight: 2,
   fillColor: "green",
+  fillOpacity: 0.0,
+  disabled: true
+};
+var signupNonPriorStyle = {
+  color: "red", //border color
+  weight: 2,
+  fillColor: "red",
   fillOpacity: 0.0,
   disabled: true
 };
@@ -181,9 +192,11 @@ function setZoomStyle() {
   let f = z < 12 ? 4/z : 0;
   let w = z/4;
   priorityStyle.fillOpacity = f;
-  signupStyle.fillOpacity = f;
+  signupPriorityStyle.fillOpacity = f;
+  signupNonPriorStyle.fillOpacity = f;
   priorityStyle.weight = w;
-  signupStyle.weight = w;
+  signupPriorityStyle.weight = w;
+  signupNonPriorStyle.weight = w;
   geoGroup.eachLayer(layer => {
     layer.resetStyle();
   })
@@ -335,10 +348,16 @@ function onGeoBoundaryStyle(feature) {
     }
     //Check the signup array to see if block was chosen
     let blockName = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+    let blockType = feature.properties.BLOCK_TYPE;
     if (sheetSignUps[blockName]) {
-      console.log(`onGeoBoundaryStyle | Found Block Signup for`, blockName);
-      style = signupStyle;
-    }
+      if ('PRIORITY' == blockType.toUpperCase()) {
+        console.log(`onGeoBoundaryStyle found PRIORITY block signup for`, blockName);
+        style = signupPriorityStyle;
+      } else {
+        console.log(`onGeoBoundaryStyle found NON-PRIORITY block signup for`, blockName);
+        style = signupNonPriorStyle;
+      }
+}
     return style;
   } else {
     if (feature.properties.BIOPHYSRG1) { //biophysical regions
@@ -848,11 +867,24 @@ function putSignups(sign) {
   geoGroup.eachLayer(layer => {
     console.log(`putSignups found GeoJson layer:`, layer.options.name);
     if ('Survey Blocks'==layer.options.name) {
+      prioritySignupCount = 0; nonPriorSignupCount = 0; priorityBlockCount = 0; priorityBlockArray = [];
       layer.eachLayer(subLay => {
         let blockName = subLay.feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+        let blockType = subLay.feature.properties.BLOCK_TYPE;
+        if ('PRIORITY' == blockType) {
+          priorityBlockArray[blockName] = 1;
+          priorityBlockCount++;
+        }
         if (sign[blockName]) {
-          console.log(`putSignups found block signup for`, blockName);
-          subLay.setStyle(signupStyle)
+          if ('PRIORITY' == blockType.toUpperCase()) {
+            console.log(`putSignups found PRIORITY block signup for`, blockName);
+            subLay.setStyle(signupPriorityStyle);
+            prioritySignupCount++;
+          } else {
+            console.log(`putSignups found NON-PRIORITY block signup for`, blockName);
+            subLay.setStyle(signupNonPriorStyle);
+            nonPriorSignupCount++;
+          }
         }
       })
     }
@@ -861,9 +893,12 @@ function putSignups(sign) {
 
 function listSignups(sign) {
   let sCnt = Object.keys(sign).length;
-  let html = `<u><b>${sCnt} block sign-ups</b></u><br>`
+  let html = `<u><b>${sCnt} TOTAL block sign-ups</b></u><br>`
+  html += `<u style="color:#029406;"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
+  html += `<u style="color:#BF0401;"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
   for (const blk in sign) {
-    html += `${blk}: ${(sign[blk].first)} ${(sign[blk].last)}<br>`;
+    let style = priorityBlockArray[blk] ? `color:#029406;` : `color:#BF0401;`;
+    html += `<span style="${style}">${blk}: ${(sign[blk].first)} ${(sign[blk].last)}</span><br>`;
   }
   zoomVT();
   let popup = L.popup({
