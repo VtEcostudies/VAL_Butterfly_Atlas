@@ -47,24 +47,27 @@ var priorityBlockCount = 0;
 var priorityBlockArray = [];
 var signupPriorityStyle = {
   color: "green", //border color
+  bgColor: "white", //for text display
   weight: 2,
   fillColor: "green",
   fillOpacity: 0.0,
   disabled: true
 };
 var signupNonPriorStyle = {
-  color: "red", //border color
+  color: "yellow", //border color
+  bgColor: "lightgray", // for text display
+  priColor: "yellow", //primary border color
+  altColor: "blue", //background-contrast border color
   weight: 2,
-  fillColor: "red",
+  fillColor: "yellow",
   fillOpacity: 0.0,
   disabled: true
 };
 var priorityStyle = {
-  color: "yellow", //border color
-  priColor: "yellow",
-  altColor: "blue",
+  color: "red", //border color
+  altColor: "red",
   weight: 2,
-  fillColor: "yellow",
+  fillColor: "red",
   fillOpacity: 0.0
 };
 var nonPriorStyle = {
@@ -157,12 +160,12 @@ function MapBaseChange(e) {
   console.log('MapBaseChange', e.layer.options.id);
   let id = e.layer.options.id;
   if ('esri.topo' == id || 'mapbox.streets' ==  id) {
-    priorityStyle.color = priorityStyle.altColor;
+    signupNonPriorStyle.color = signupNonPriorStyle.altColor;
     eleMapLabs.forEach(ele => {
       ele.classList.remove('bg-contrast');
       })
     } else {
-    priorityStyle.color = priorityStyle.priColor;
+      signupNonPriorStyle.color = signupNonPriorStyle.priColor;
     eleMapLabs.forEach(ele => {
       ele.classList.add('bg-contrast');
       })
@@ -894,10 +897,10 @@ function putSignups(sign) {
 function listSignups(sign) {
   let sCnt = Object.keys(sign).length;
   let html = `<u><b>${sCnt} TOTAL block sign-ups</b></u><br>`
-  html += `<u style="color:#029406;"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
-  html += `<u style="color:#BF0401;"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
+  html += `<u style="color:${signupPriorityStyle.fillColor};"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
+  html += `<u style="color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor}"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
   for (const blk in sign) {
-    let style = priorityBlockArray[blk] ? `color:#029406;` : `color:#BF0401;`;
+    let style = priorityBlockArray[blk] ? `color:${signupPriorityStyle.fillColor}; background-color:${signupPriorityStyle.bgColor}` : `color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor};`;
     html += `<span style="${style}">${blk}: ${(sign[blk].first)} ${(sign[blk].last)}</span><br>`;
   }
   zoomVT();
