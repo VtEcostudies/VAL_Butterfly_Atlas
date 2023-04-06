@@ -25,12 +25,6 @@
   color: blue;
 }
 
-.traffic-light {
-  float: left;
-  margin-left: 5px;
-  margin-top: 4px;
-}
-
 .cluster-count {
   width: 30px;
   height: 30px;
@@ -189,6 +183,12 @@ html, body, #mapid, .row-fluid{
   display: block;
   color: darkblue;
   padding-right: 5px;
+}
+
+.traffic-light {
+  float: left;
+  margin-left: 5px;
+  margin-top: 3px; /* if margin-top is too large, it mucks block display for small fonts */
 }
 
 .bg-contrast {
