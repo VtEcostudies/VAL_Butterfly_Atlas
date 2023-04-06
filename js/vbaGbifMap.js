@@ -4,11 +4,13 @@
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
-import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, gadmGids, butterflyKeys } from './fetchGbifOccs.js';
-import { fetchJsonFile, parseCanonicalFromScientific } from './commonUtilities.js';
-import { getSheetSignups, sheetVernacularNames } from './fetchGoogleSheetsData.js';
-import { checklistVernacularNames } from './fetchGbifSpecies.js';
-import { getWikiPage } from './wiki_page_data.js';
+import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, gadmGids, butterflyKeys } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
+import { fetchJsonFile, parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getSheetSignups, getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
+import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
+import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
+
+var sheetVernacularNames = await getSheetVernaculars();
 
 var vtCenter = [43.916944, -72.668056]; //VT geo center, downtown Randolph
 var vtAltCtr = [43.858297, -72.446594]; //VT border center for the speciespage view, where px bounds are small and map is zoomed to fit

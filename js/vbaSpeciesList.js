@@ -1,17 +1,19 @@
-import { getOccsByFilters } from './fetchGbifOccs.js';
-import { getWikiPage } from './wiki_page_data.js'
-import { parseCanonicalFromScientific } from './commonUtilities.js';
-import { sheetVernacularNames } from './fetchGoogleSheetsData.js';
-import { checklistVernacularNames } from './fetchGbifSpecies.js';
+import { getOccsByFilters } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
+import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js'
+import { parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
+import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
+import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDatasetUrl } from "../VAL_Web_Utilities/js/fetchGbifDataset.js";
 
 const objUrlParams = new URLSearchParams(window.location.search);
 const geometry = objUrlParams.get('geometry');
 const dataset = objUrlParams.get('dataset');
 const block = objUrlParams.get('block');
 const taxonKeyA = objUrlParams.getAll('taxonKey');
-const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
-//var vernaculars = [];
 console.log('Query Param(s) taxonKeys:', taxonKeyA);
+
+const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
+var sheetVernacularNames = getSheetVernaculars();
 
 const other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
@@ -23,7 +25,9 @@ objUrlParams.forEach((val, key) => {
   
 const eleDiv = document.getElementById("speciesListDiv");
 const eleTbl = document.getElementById("speciesListTable");
-const eleLbl = document.getElementById("speciesListLabel");
+const eleTtl = document.getElementById("speciesListTitle");
+const eleInat =  document.getElementById("inatInfoLabel");
+const eleEbut =  document.getElementById("ebutInfoLabel");
 
 /*
 geometry=POLYGON((-73.0 44.0,-72.75 44.0,-72.75 44.2,-73.0 44.2,-73.0 44.0))
@@ -206,11 +210,31 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
     }
 }
 
-function setLabelText(block, dataset=false, taxonKeys=false, count=0) {
-if (eleLbl) {
-eleLbl.innerHTML = 
-`VT Butterfly Atlas Species List for Survey Block ${block}${dataset ? ' and dataset ' + dataset : ''}: (<u>${count} taxa</u>)`;
+function setTitleText(block, dataset=false, taxonKeys=false, count=0) {
+    if (eleTtl) {
+        eleTtl.innerHTML = 
+        `VT Butterfly Atlas Species List for Survey Block ${block}${dataset ? ' and dataset ' + dataset : ''}: (<u>${count} taxa</u>)`;
+    }
 }
+
+function setEbutInfo() {
+    let ebut = fetchEbutGbifDatasetInfo();
+    console.log('setEbutInfo:', ebut);
+    if (eleEbut) {
+        ebut.then(ebut => {
+            eleEbut.innerHTML = `<a href="${gbifDatasetUrl}/${datasetKeys.ebut}">eButterfly-GBIF</a> Updated on <i>${moment.utc(ebut.pubDate).format('YYYY-MM-DD')}</i>`;
+        })
+    }
+}
+
+function setInatInfo() {
+    let inat = fetchInatGbifDatasetInfo();
+    console.log('setInatInfo:', inat);
+    if (eleInat) {
+        inat.then(inat => {
+            eleInat.innerHTML = `<a href="${gbifDatasetUrl}/${datasetKeys.inat}">iNaturalist-GBIF</a> Updated on <i>${moment.utc(inat.pubDate).format('YYYY-MM-DD')}</i>`;
+        })
+    }
 }
 
 if (block && geometry) {
@@ -222,8 +246,10 @@ if (block && geometry) {
     await addGBIFLink(geometry, taxonKeys);
     await addTaxaFromArr(spcs.array);
     await addTableHead(spcs.cols);
-    await setLabelText(block, dataset, taxonKeys, Object.keys(spcs.array).length);
+    setTitleText(block, dataset, taxonKeys, Object.keys(spcs.array).length);
     delTableWait();
+    setEbutInfo();
+    setInatInfo();
 } else {
     alert(`Must call with at least the query parameters 'block' and 'geometry'. Alternatively pass a dataset (like 'vba1') or one or more eg. 'taxon_key=1234'.`)
 }
