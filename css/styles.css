@@ -13,7 +13,7 @@
   color: greenyellow;
 }
 .fa-square {
-  color: red;
+  color: orange;
 }
 .fa-caret-up { /*aka triangle*/
   color: cyan;
@@ -57,7 +57,7 @@
 .square-shape {
   height: 30px;
   width: 30px;
-  background-color: red;
+  background-color: orange;
   border-radius: 0%;
   border-color: black;
   border-style: solid;

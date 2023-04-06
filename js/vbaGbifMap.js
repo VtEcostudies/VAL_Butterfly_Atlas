@@ -627,6 +627,8 @@ function getClusterIconOptions(grpIcon, cluster, sz=30) {
   - don't hang popup on each point
   - externally, reduce dataset size by removing unnecessary columns
   - use leaflet.cluster to manage zoom-level point rendering
+
+  //NOTE: grpIcon colors are handled in styles.css with their shape-definitions. Eg. .fa-square & .square-shape  
 */
 //async function addOccsToMap(occJsonArr=[], groupField='datasetKey', grpIcon, grpColor='Red') {
 async function addOccsToMap(occJsonArr=[], dataset) {
@@ -713,6 +715,7 @@ async function addOccsToMap(occJsonArr=[], dataset) {
         }
       };
       //let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up fa-2x' : grpIcon);
+      //NOTE: grpIcon colors are handled in styles.css with their shape-definitions. Eg. .fa-square & .square-shape  
       let faIcon = 'round'==grpIcon ? 'circle' : ('triangle'==grpIcon ? 'caret-up' : grpIcon);
       let grpHtml = `<div class="layerControlItem" id="${idGrpName}"><i class="fa fa-${faIcon} "></i>${grpName}<span id="groupCount-${idGrpName}">&nbsp(<u><b>${cmCount[grpName]}</u></b>)</span></div>`;
       
