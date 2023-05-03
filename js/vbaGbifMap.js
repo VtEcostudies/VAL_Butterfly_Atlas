@@ -306,7 +306,10 @@ function onGeoBoundaryFeature(feature, layer) {
       if (9 == layer.options.id) { //VT Butterfly Atlas
         var pops;
         var name = feature.properties.BLOCKNAME;
+
         var link = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+        link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
+        console.log('Survey Block Layer click | block link name:', link);
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
           pops = `<b><u>BUTTERFLY ATLAS PRIORITY BLOCK</u></b></br></br>`;
         } else {
