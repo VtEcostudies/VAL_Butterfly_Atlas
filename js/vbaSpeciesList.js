@@ -46,8 +46,10 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
     let hedSpcs = 'Species List for ' + block + (dataset ? ` and dataset ${dataset}` : '')
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
+    console.log('getBlockSpecieslist', block, arrOccs);
     for (var i=0; i<arrOccs.length; i++) {
-        let sciName = arrOccs[i].scientificName;
+        let sciName = parseCanonicalFromScientific(arrOccs[i], 'scientificName');
+        let accName = parseCanonicalFromScientific(arrOccs[i], 'acceptedScientificName');
         let canName = parseCanonicalFromScientific(arrOccs[i]);
         let taxRank = arrOccs[i].taxonRank.toUpperCase();
         let taxSpcs = arrOccs[i].species;
@@ -56,26 +58,32 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
             if (arrOccs[i].eventDate > objSpcs[taxSpcs].eventDate) {
                 console.log('getOccsByFilters FOUND MORE RECENT OBSERVATION for', sciName, arrOccs[i].eventDate, '>', objSpcs[taxSpcs].eventDate);
                 objSpcs[taxSpcs] = {
+                    'taxonKey': arrOccs[i].taxonKey,
                     'acceptedTaxonKey': arrOccs[i].speciesKey, //arrOccs[i].acceptedTaxonKey,
                     'subspKey': 'SUBSPECIES'==taxRank ? arrOccs[i].acceptedTaxonKey : false,
-                    'scientificName': taxSpcs, //sciName
+                    'scientificName': sciName, //taxSpcs, //sciName
+                    'acceptedName': accName,
                     'taxonRank': 'SPECIES', //taxRank
                     'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                     'image': false,
-                    'eventDate':  arrOccs[i].eventDate
+                    'eventDate':  arrOccs[i].eventDate,
+                    'gbifId': arrOccs[i].gbifID
                 }
             }
         } else { //add new name here only if rank is SPECIES or SUBSPECIES. Deal with GENUS not represented by SPECIES later.
             if ('SPECIES'==taxRank || 'SUBSPECIES'==taxRank) { //...but roll SUBSP into SPECIES...
                 objSpcs[taxSpcs] = {
+                    'taxonKey': arrOccs[i].taxonKey,
                     'acceptedTaxonKey': arrOccs[i].speciesKey, //arrOccs[i].acceptedTaxonKey,
                     'subspKey': 'SUBSPECIES'==taxRank ? arrOccs[i].acceptedTaxonKey : false,
-                    'scientificName': taxSpcs, //sciName
+                    'scientificName': sciName, //taxSpcs, //sciName
+                    'acceptedName': accName,
                     'taxonRank': 'SPECIES', //taxRank,
                     'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                     'image': false,
-                    'eventDate':  arrOccs[i].eventDate
-            };
+                    'eventDate':  arrOccs[i].eventDate,
+                    'gbifId': arrOccs[i].gbifID
+                };
             objGnus[taxGnus]={'canonicalName':canName, 'taxonRank':taxRank};
             }
         }
@@ -83,24 +91,28 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
     //loop again looking for GENUS not listed yet
     for (var i=0; i<arrOccs.length; i++) {
         let sciName = arrOccs[i].scientificName;
+        let accName = parseCanonicalFromScientific(arrOccs[i], 'acceptedScientificName');
         let canName = parseCanonicalFromScientific(arrOccs[i]);
         let taxRank = arrOccs[i].taxonRank.toUpperCase();
         let taxGnus = arrOccs[i].genus;
         if ('GENUS'==taxRank && !objGnus[taxGnus]) {
             objSpcs[taxGnus] = {
+                'taxonKey': arrOccs[i].taxonKey,
                 'acceptedTaxonKey': arrOccs[i].acceptedTaxonKey,
                 'scientificName': taxGnus, //sciName,
+                'acceptedName': accName,
                 'taxonRank': taxRank,
                 'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                 'image': false,
-                'eventDate':  arrOccs[i].eventDate
+                'eventDate':  arrOccs[i].eventDate,
+                'gbifId': arrOccs[i].gbifID
             }
             objGnus[taxGnus]={'canonicalName':canName, 'taxonRank':taxRank};
         }
     }
     return {
         'head': hedSpcs, 
-        'cols': ['Taxon Key','Scientific Name','Taxon Rank','Common Name','Image','Last Observed'], 
+        'cols': ['Taxon Key','Accepted Key','Applied Name','Accepted Name','Taxon Rank','Common Name','Image','Last Observed'], 
         'array': objSpcs, 
         'query': occs.query
     };
@@ -179,11 +191,17 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
             case 'scientificName':
                 colObj = objRow.insertCell(colIdx++);
                 //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
-                colObj.innerHTML = `<a title="VAL Species Profile: ${spcKey}" href="https://val.vtecostudies.org/species-profile?taxonName=${spcKey}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?taxonName=${val}">${val}</a>`;
+                break;
+            case 'acceptedName':
+                colObj = objRow.insertCell(colIdx++);
+                //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?taxonName=${val}">${val}</a>`;
                 break;
             case 'eventDate':
                 colObj = objRow.insertCell(colIdx++);
-                colObj.innerHTML = val ? moment(val).format('YYYY-MM-DD') : '';
+                let date = val ? moment(val).format('YYYY-MM-DD') : 'N/A';
+                colObj.innerHTML = colObj.innerHTML = `<a title="Gbif Occurrence Record: ${objSpc.gbifId}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
                 break;
             case 'vernacularName': //don't use GBIF occurrence value for vernacularName, use VAL checklist or VAL google sheet
                 colObj = objRow.insertCell(colIdx++);
@@ -191,6 +209,10 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
                 //colObj.innerHTML = val ? val : (checklistVernacularNames[key] ? checklistVernacularNames[key][0].vernacularName : '');
                 //colObj.innerHTML = val ? val : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
                 colObj.innerHTML = checklistVernacularNames[key] ? checklistVernacularNames[key][0].vernacularName : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
+                break;
+            case 'taxonKey':
+                colObj = objRow.insertCell(colIdx++);
+                colObj.innerHTML = `<a title="Gbif Species Profile: ${val}" href="https://gbif.org/species/${val}">${val}</a>`;
                 break;
             case 'acceptedTaxonKey':
                 colObj = objRow.insertCell(colIdx++);
