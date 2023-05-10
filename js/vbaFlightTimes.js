@@ -55,12 +55,18 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     let colIdx = -1;
     let objRow = await eleTbl.insertRow(rowIdx);
     let objCol = objRow.insertCell(++colIdx);
-    objCol.innerHTML = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://gbif.org/species/${taxon.nubKey}">${taxon.canonicalName}</a>`;
+    let aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://gbif.org/species/${taxon.nubKey}">${taxon.canonicalName}</a>`
+    aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://val.vtecostudies.org/species-profile?taxonName=${taxon.canonicalName}">${taxon.canonicalName}</a>`
+    objCol.innerHTML = aTag;
     objCol.classList.add('taxonName');
     let verna = taxon.vernacularNames ? (taxon.vernacularNames.length ? taxon.vernacularNames[0].vernacularName : '') : '';
     verna = verna ? verna : taxon.vernacularName;
     objCol = objRow.insertCell(++colIdx); objCol.innerText = verna; objCol.classList.add('taxonName');
-    objCol = objRow.insertCell(++colIdx); objCol.innerText = pheno.total; objCol.classList.add('taxonName'); //row total VT Observations
+    objCol = objRow.insertCell(++colIdx); 
+    //objCol.innerText = pheno.total; 
+    aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://val.vtecostudies.org/gbif-explorer?taxonKey=${taxon.nubKey}&view=MAP">${pheno.total}</a>`
+    objCol.innerHTML = aTag;
+    objCol.classList.add('taxonName'); //row total VT Observations
     let month = 0;
     for (var week=1; week<54; week++) {
         let wCount = pheno.weekSum[week] ? pheno.weekSum[week] : 0;
