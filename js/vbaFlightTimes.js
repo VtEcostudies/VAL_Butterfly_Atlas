@@ -79,9 +79,9 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
             todayWeekColumnId = colIdx + week;
         }
         objCol.innerHTML += `<div class="phenoBarWeek" style="height:${wFreq}px;"></div>`;
-        objCol.setAttribute('data-sort', `${wFreq}`); //to sort by phenoFreq, must add the dataTables sort attribute to objCol, not inner div
-        //objCol.setAttribute('data-order', `${wFreq}`); //to sort by phenoFreq, must add the dataTables sort attribute to objCol, not inner div
-        objCol.setAttribute('title',  `${wCount}/${pheno.total}`);
+        objCol.setAttribute('data-sort', `${wCount}`); //to sort by phenoWeek, must add the dataTables sort attribute to objCol, not inner div
+        objCol.setAttribute('data-order', `${wCount}`); //to sort by phenoWeek, must add the dataTables sort attribute to objCol, not inner div
+        objCol.setAttribute('title',  `${wCount}`);
     }
 }
 
