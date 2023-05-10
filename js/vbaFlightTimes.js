@@ -94,5 +94,5 @@ if (taxonName) {
     }
     addWeekHead();
 } else {
-    alert(`Must call with at least a query parameter like taxonName=Rattus rattus. Alternatively pass multiple taxonKey=1234.`)
+    alert(`Must call with at least a query parameter like taxonName=Danaus plexippus. Alternatively pass butterflies=true, and use &offset=10&limit=10 to view content.`)
 }
