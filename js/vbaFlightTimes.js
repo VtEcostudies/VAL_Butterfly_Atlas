@@ -71,6 +71,7 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     for (var week=1; week<54; week++) {
         let wCount = pheno.weekSum[week] ? pheno.weekSum[week] : 0;
         let wFreq = Math.floor(wCount/pheno.total*100);
+        if (0 == wCount) {wFreq = 0;} //the above turns 0/0 into 1
         let todayWeekClass = pheno.weekToday == week ? 'phenoCellToday' : false; 
         objCol = objRow.insertCell(colIdx + week);
         if (todayWeekClass) {
@@ -79,6 +80,7 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
         }
         objCol.innerHTML += `<div class="phenoBarWeek" style="height:${wFreq}px;"></div>`;
         objCol.setAttribute('data-sort', `${wFreq}`); //to sort by phenoFreq, must add the dataTables sort attribute to objCol, not inner div
+        //objCol.setAttribute('data-order', `${wFreq}`); //to sort by phenoFreq, must add the dataTables sort attribute to objCol, not inner div
         objCol.setAttribute('title',  `${wCount}/${pheno.total}`);
     }
 }
