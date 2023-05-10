@@ -24,6 +24,7 @@ table tr {
 }
 
 .taxonName {
+    /*width:100%;*/
     min-width:90px;
     padding-left:3px;
     padding-right:3px;
@@ -41,6 +42,8 @@ td:nth-child(2) {
     padding-right:3px;
 }
 */
+/*
 tr:nth-child(1) td {
-    /*border:none;*/
+    border:none;
 }
+*/
