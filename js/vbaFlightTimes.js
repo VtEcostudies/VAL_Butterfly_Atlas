@@ -29,13 +29,13 @@ const eleTbl = document.getElementById("flightTimesTable");
 let monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 //head row of month names every 4ish weeks
 async function addWeekHead() {
-    let objHed = await eleTbl.createTHead();
-    let hedRow = await objHed.insertRow(0);
-    let colObj = await hedRow.insertCell(0);
-    colObj.innerText = 'Name'
+    let objHed = eleTbl.createTHead();
+    let hedRow = objHed.insertRow(0);
+    let colObj = hedRow.insertCell(0); colObj.innerText = 'Name'
+    colObj = hedRow.insertCell(1); colObj.innerText = 'VT Obs'
     let month = 0;
     for (var week=1; week<54; week++) {
-        colObj = await hedRow.insertCell(week);
+        colObj = await hedRow.insertCell(1 + week);
         if (week/4.41667 > month) {
             month++;
             colObj.innerText = monthName[month-1];
@@ -55,15 +55,18 @@ async function addTaxonWeeksArr(objArr) {
   }
 
 async function addTaxonRow(pheno=false, vernacular=false, rowIdx=0) {
+    let idxCol = 0;
     let objRow = await eleTbl.insertRow(rowIdx);
-    let objCol = objRow.insertCell(0);
-    objCol.innerText = vernacular ? vernacular : pheno.search.split('=')[1];
-    let month = 0; let html = '';
+    let objCol = objRow.insertCell(0); objCol.innerText = vernacular ? vernacular : pheno.search.split('=')[1]; //row name
+    objCol = objRow.insertCell(1); objCol.innerText = pheno.total; //row total count
+    let month = 0;
     for (var week=1; week<54; week++) {
         let wCount = pheno.weekSum[week] ? pheno.weekSum[week] : 0;
         let wFreq = Math.floor(wCount/pheno.total*100);
-        objCol = objRow.insertCell(week);
-        objCol.innerHTML += `<div style="border-left:5px solid green;height:${wFreq}px;"></div>`;
+        let todayWeekClass = pheno.weekToday == week ? 'phenoCellToday' : false; 
+        objCol = objRow.insertCell(week+1);
+        if (todayWeekClass) {objCol.classList.add(todayWeekClass);}
+        objCol.innerHTML += `<div class="phenoBarWeek" style="height:${wFreq}px;"></div>`;
     }
 }
 

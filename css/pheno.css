@@ -1,17 +1,40 @@
+
+.phenoBarWeek {
+    border-left: 6px solid green;
+    text-align: center;
+    width: 0px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.phenoCellToday {
+    background-color: aqua;
+}
+
 td {
-    border:1px solid black;
+    border:1px solid lightgrey;
     width:10px;
     max-width:10px;
+    min-width:10px;
+    text-align: center;
 }
 
 table tr {
-    border:1px solid black;
+    border:1px solid black !important;
 }
 
 td:nth-child(1) {
     min-width:90px;
+    padding-left:3px;
+    padding-right:3px;
 }
 
-tr:nth-child(1) {
-    border:none;
+td:nth-child(2) {
+    min-width:50px;
+    padding-left:3px;
+    padding-right:3px;
+}
+
+tr:nth-child(1) td {
+    /*border:none;*/
 }
