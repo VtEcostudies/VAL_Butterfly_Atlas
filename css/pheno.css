@@ -1,0 +1,17 @@
+td {
+    border:1px solid black;
+    width:10px;
+    max-width:10px;
+}
+
+table tr {
+    border:1px solid black;
+}
+
+td:nth-child(1) {
+    min-width:90px;
+}
+
+tr:nth-child(1) {
+    border:none;
+}

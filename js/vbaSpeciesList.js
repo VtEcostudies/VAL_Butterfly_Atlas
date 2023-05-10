@@ -15,7 +15,7 @@ console.log('Query Param(s) taxonKeys:', taxonKeyA);
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
 var sheetVernacularNames = getSheetVernaculars();
 
-const other = ''; var objOther = {};
+var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
     if ('geometry'!=key && 'block'!=key && 'dataset'!=key) {
       other += `&${key}=${val}`;
@@ -54,11 +54,17 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
         let taxRank = arrOccs[i].taxonRank.toUpperCase();
         let taxSpcs = arrOccs[i].species;
         let taxGnus = arrOccs[i].genus;
+        /*
+            Due to errors in GBIF butterfly taxonomies, we show both the 'Applied' name submitted with the original observation,
+            and the 'Accepted' name matched from the GBIF backbone. The values we get from the occurrence API, 'species' and
+            'speciesKey', 'genus' and 'genusKey', needed here to show Species List style values from occurrence results, derive
+            from the Accepted name.
+        */
         if (objSpcs[taxSpcs]) { //check to replace name with more recent observation
             if (arrOccs[i].eventDate > objSpcs[taxSpcs].eventDate) {
                 console.log('getOccsByFilters FOUND MORE RECENT OBSERVATION for', sciName, arrOccs[i].eventDate, '>', objSpcs[taxSpcs].eventDate);
                 objSpcs[taxSpcs] = {
-                    'taxonKey': arrOccs[i].taxonKey,
+                    'taxonKey': arrOccs[i].taxonKey, 
                     'acceptedTaxonKey': arrOccs[i].speciesKey, //arrOccs[i].acceptedTaxonKey,
                     'subspKey': 'SUBSPECIES'==taxRank ? arrOccs[i].acceptedTaxonKey : false,
                     'scientificName': sciName, //taxSpcs, //sciName
