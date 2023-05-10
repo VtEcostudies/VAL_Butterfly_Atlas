@@ -54,7 +54,7 @@ async function addTaxonWeeksArr(objArr) {
     }
   }
 
-async function addTaxonRow(pheno=false, vernacular, rowIdx=0) {
+async function addTaxonRow(pheno=false, vernacular=false, rowIdx=0) {
     let objRow = await eleTbl.insertRow(rowIdx);
     let objCol = objRow.insertCell(0);
     objCol.innerText = vernacular ? vernacular : pheno.search.split('=')[1];
@@ -69,18 +69,15 @@ async function addTaxonRow(pheno=false, vernacular, rowIdx=0) {
 
 if (taxonName) {
     //addTableWait();
-    //vernaculars = await getVernaculars();
     let pheno = await gbifCountsByWeek(taxonName);
-    console.log('vbaFlightTimes', pheno);
-    addTaxonRow(taxonName, pheno);
+    addTaxonRow(pheno);
     addWeekHead();
     //delTableWait();
 } else if (butterflies) {
     let butts = await getGbifSpeciesDataset();
     console.log(butts);
     for (var i=offset; i<(offset+limit); i++) {
-    //for (var i=50; i<60; i++) {
-            if ('ACCEPTED' == butts.results[i].taxonomicStatus) {
+        if ('ACCEPTED' == butts.results[i].taxonomicStatus) {
         //let pheno = await gbifCountsByWeekByTaxonName(butts.results[i].canonicalName);
         let pheno = await gbifCountsByWeekByTaxonKey(butts.results[i].nubKey);
         addTaxonRow(pheno, butts.results[i].vernacularNames[0].vernacularName);
