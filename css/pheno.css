@@ -23,6 +23,12 @@ table tr {
     border:1px solid black !important;
 }
 
+.taxonName {
+    min-width:90px;
+    padding-left:3px;
+    padding-right:3px;
+}
+/*
 td:nth-child(1) {
     min-width:90px;
     padding-left:3px;
@@ -34,7 +40,7 @@ td:nth-child(2) {
     padding-left:3px;
     padding-right:3px;
 }
-
+*/
 tr:nth-child(1) td {
     /*border:none;*/
 }

@@ -1,5 +1,5 @@
 import { gbifCountsByWeek, gbifCountsByWeekByTaxonKey, gbifCountsByWeekByTaxonName } from '../VAL_Web_Utilities/js/gbifCountsByWeek.js';
-import { datasetKeys, gbifDatasetUrl } from "../VAL_Web_Utilities/js/fetchGbifDataset.js";
+import { datasetKeys } from "../VAL_Web_Utilities/js/fetchGbifSpecies.js";
 import { getGbifSpeciesDataset } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 
 const objUrlParams = new URLSearchParams(window.location.search);
@@ -31,11 +31,12 @@ let monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','No
 async function addWeekHead() {
     let objHed = eleTbl.createTHead();
     let hedRow = objHed.insertRow(0);
-    let colObj = hedRow.insertCell(0); colObj.innerText = 'Name'
-    colObj = hedRow.insertCell(1); colObj.innerText = 'VT Obs'
+    let colObj = hedRow.insertCell(0); colObj.innerText = 'Taxon'
+    colObj = hedRow.insertCell(1); colObj.innerText = 'Common'
+    colObj = hedRow.insertCell(2); colObj.innerText = 'VT Obs'
     let month = 0;
     for (var week=1; week<54; week++) {
-        colObj = await hedRow.insertCell(1 + week);
+        colObj = await hedRow.insertCell(2 + week);
         if (week/4.41667 > month) {
             month++;
             colObj.innerText = monthName[month-1];
@@ -43,28 +44,18 @@ async function addWeekHead() {
     }
 }
 
-//Create table row for each array element, then fill row of cells
-async function addTaxonWeeksArr(objArr) {
-    //console.log('addTaxaFromArr', objArr);
-    let rowIdx=0;
-    for (const [spcKey, objSpc] of Object.entries(objArr)) {
-        //console.log(objSpc, rowIdx)
-        let objRow = await eleTbl.insertRow(rowIdx);
-        await addTaxonRow(pheno, '', rowIdx++);
-    }
-  }
-
 async function addTaxonRow(pheno=false, vernacular=false, rowIdx=0) {
     let idxCol = 0;
     let objRow = await eleTbl.insertRow(rowIdx);
-    let objCol = objRow.insertCell(0); objCol.innerText = vernacular ? vernacular : pheno.search.split('=')[1]; //row name
-    objCol = objRow.insertCell(1); objCol.innerText = pheno.total; //row total count
+    let objCol = objRow.insertCell(0); objCol.innerText = pheno.taxonName ? pheno.taxonName: pheno.search.split('=')[1]; objCol.classList.add('taxonName');
+    objCol = objRow.insertCell(1); objCol.innerText = vernacular ? vernacular : ''; objCol.classList.add('taxonName');
+    objCol = objRow.insertCell(2); objCol.innerText = pheno.total; objCol.classList.add('taxonName'); //row total VT Observations
     let month = 0;
     for (var week=1; week<54; week++) {
         let wCount = pheno.weekSum[week] ? pheno.weekSum[week] : 0;
         let wFreq = Math.floor(wCount/pheno.total*100);
         let todayWeekClass = pheno.weekToday == week ? 'phenoCellToday' : false; 
-        objCol = objRow.insertCell(week+1);
+        objCol = objRow.insertCell(2 + week);
         if (todayWeekClass) {objCol.classList.add(todayWeekClass);}
         objCol.innerHTML += `<div class="phenoBarWeek" style="height:${wFreq}px;"></div>`;
     }
@@ -73,23 +64,22 @@ async function addTaxonRow(pheno=false, vernacular=false, rowIdx=0) {
 if (taxonName) {
     //addTableWait();
     let pheno = await gbifCountsByWeek(taxonName);
+    console.log(`vbaFlightTimes=>gbifCountsByWeek(${taxonName})`, pheno);
     addTaxonRow(pheno);
     addWeekHead();
     //delTableWait();
 } else if (butterflies) {
-    let butts = await getGbifSpeciesDataset();
-    console.log(butts);
+    let butts = await getGbifSpeciesDataset(datasetKeys['chkVtb1'],0,1000,'rank=SPECIES&rank=SUBSPECIES'); //the default checklist is VT Butterflies. Prolly should make that explicit, here.
+    console.log(`vbaFlightTimes=>getGbifSpeciesDataset`, butts);
+    offset = offset < butts.results.length ? offset : butts.results.length - 1;
+    limit = (offset+limit) < butts.results.length ? limit : butts.results.length - offset;
     for (var i=offset; i<(offset+limit); i++) {
-        if ('ACCEPTED' == butts.results[i].taxonomicStatus) {
-        //let pheno = await gbifCountsByWeekByTaxonName(butts.results[i].canonicalName);
-        let pheno = await gbifCountsByWeekByTaxonKey(butts.results[i].nubKey);
-        addTaxonRow(pheno, butts.results[i].vernacularNames[0].vernacularName);
-        /*
-        gbifCountsByWeekByTaxonName(butts.results[i].canonicalName)
-            .then(pheno => {
-                addTaxonRow(pheno);
-            })
-        */
+        console.log('RANK:', butts.results[i].rank.toUpperCase())
+        if (('SPECIES' == butts.results[i].rank.toUpperCase() || 'SUBSPECIES' == butts.results[i].rank.toUpperCase()) && 'ACCEPTED' == butts.results[i].taxonomicStatus.toUpperCase()) {
+            let pheno = await gbifCountsByWeekByTaxonName(butts.results[i].canonicalName);
+            //let pheno = await gbifCountsByWeekByTaxonKey(butts.results[i].nubKey);
+            let verna = butts.results[i].vernacularNames.length ? butts.results[i].vernacularNames[0].vernacularName : false;
+            addTaxonRow(pheno, verna);
         }
     }
     addWeekHead();
