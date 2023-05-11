@@ -12,7 +12,7 @@
   
 .phenoBarWeek {
     border-left: 0px solid green;
-    border-right: 10px solid green;
+    border-right: 8px solid green;
     text-align: center;
     width: 0px;
     margin-left: 1px;
@@ -20,9 +20,8 @@
 }
 
 .phenoCell {
-    width:15px;
-    max-width:12px;
-    min-width:12px;
+    max-width:10px;
+    min-width:10px;
 }
 
 .phenoCellToday {
@@ -66,13 +65,13 @@ table tr {
 }
 
 .taxonInfo {
-    min-width:90px;
+    min-width:80px;
     padding-left:3px;
     padding-right:3px;
 }
 
 .taxonName {
-    min-width: 110px;
+    min-width: 90px;
 }
 
 /*
