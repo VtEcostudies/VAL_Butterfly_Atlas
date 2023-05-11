@@ -27,6 +27,8 @@ objUrlParams.forEach((val, key) => {
   });
   
 const eleTbl = document.getElementById("flightTimesTable");
+const eleTtl = document.getElementById("flightTimesTitle");
+
 var todayWeekColumnId = 0; //the columnId in the table of this week in the year, to (hopefully) auto-sort by that phenology
 
 let monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -49,6 +51,7 @@ async function addWeekHead() {
         } else {
             colObj.innerHTML += `<div class="monthHeaderName">&nbsp</div>`; //nbsp is required placeholder
         }
+        colObj.classList.add('phenoCell');  
         colObj.addEventListener("click", (e) => {
             //console.log(e);
             //e.target.classList.toggle("weekHeaderSelected");
@@ -97,6 +100,13 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     }
 }
 
+function setTitleText(taxonName=false, taxonKeys=false, offset=false, limit=false) {
+    if (eleTtl) {
+        eleTtl.innerHTML = 
+        `VT Butterfly Atlas Flight Times`;
+    }
+}
+
 if (taxonName) {
     let match = await getGbifTaxonObjFromName(taxonName); 
     console.log(`vbaFlightTimes=>getGbifTaxonObjFromName(${taxonName})`, match);
@@ -104,6 +114,7 @@ if (taxonName) {
     console.log(`vbaFlightTimes=>getGbifSpeciesByTaxonKey(${taxon.canonicalName})`, taxon);
     let pheno = await gbifCountsByWeek(taxon.canonicalName);
     console.log(`vbaFlightTimes=>gbifCountsByWeek(${taxon.canonicalName})`, pheno);
+    setTitleText();
     addTaxonRow(pheno, taxon);
     addWeekHead();
 } else if (butterflies) {
@@ -111,6 +122,7 @@ if (taxonName) {
     console.log(`vbaFlightTimes=>getGbifSpeciesDataset`, butts);
     offset = offset < butts.results.length ? offset : butts.results.length - 1;
     limit = (offset+limit) < butts.results.length ? limit : butts.results.length - offset;
+    setTitleText();
     let rowIdx = 0;
     for (var i=offset; i<(offset+limit); i++) {
         let taxon = butts.results[i];

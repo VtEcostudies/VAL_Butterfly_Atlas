@@ -1,7 +1,18 @@
 
+.centerTitle {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+.centerTable {
+    margin-left: auto;
+    margin-right: auto;
+}
+  
 .phenoBarWeek {
     border-left: 0px solid green;
-    border-right: 8px solid green;
+    border-right: 10px solid green;
     text-align: center;
     width: 0px;
     margin-left: 1px;
@@ -9,7 +20,9 @@
 }
 
 .phenoCell {
-
+    width:15px;
+    max-width:12px;
+    min-width:12px;
 }
 
 .phenoCellToday {
@@ -36,9 +49,6 @@
 
 td {
     border:1px solid lightgrey;
-    width:10px;
-    max-width:10px;
-    min-width:10px;
     text-align:center;
     font-size:medium;
 }
