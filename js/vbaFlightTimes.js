@@ -16,7 +16,7 @@ let lim = Number(objUrlParams.get('limit'));
 offset = off ? off : offset;
 limit = lim ? lim : limit;
 console.log('offset', offset, 'limit', limit, 'off', off, 'lim', lim);
-const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
+const butterflyKeys = 'taxonKey=6953&taxonKey=5473&taxonKey=7017&taxonKey=9417&taxonKey=5481&taxonKey=1933999';
 /*
 var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
@@ -91,7 +91,7 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     objCol.classList.add('taxonInfo');
 
     let verna = taxon.vernacularNames ? (taxon.vernacularNames.length ? taxon.vernacularNames[0].vernacularName : '') : '';
-    verna = verna ? verna : taxon.vernacularName;
+    verna = verna ? verna : (taxon.vernacularName ? taxon.vernacularName : '');
     objCol = objRow.insertCell(++colIdx); 
     objCol.innerText = verna;
     objCol.classList.add('taxonInfo');
@@ -146,7 +146,7 @@ if (taxonNameA || taxonKeyA) {
         console.log(`vbaFlightTimes=>gbifCountsByWeekByTaxonKey(${taxonKey})`, pheno);
         addTaxonRow(pheno, taxon, i);
     }
-    setTitleText(`Vermont Atlas of Life Phenology`, taxonNameA, taxonKeyA);
+    setTitleText(`Vermont Atlas of Life GBIF Phenology`, taxonNameA, taxonKeyA);
     addWeekHead();
     delPageWait();
 } else if (butterflies) {
