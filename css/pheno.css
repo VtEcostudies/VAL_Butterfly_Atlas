@@ -1,4 +1,9 @@
 
+.container {
+    padding: 0px;
+    margin: 0px;
+}
+
 .centerTitle {
     text-align: center;
     margin-top: 10px;
