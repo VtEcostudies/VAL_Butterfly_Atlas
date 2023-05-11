@@ -126,7 +126,26 @@ function setTitleText(text='VT Butterfly Atlas Flight Times', taxonNameA=[], tax
     }
 }
 
-if (taxonNameA || taxonKeyA) {
+if (butterflies) {
+    let rowIdx = 0;
+    addPageWait();
+    let butts = await getGbifSpeciesDataset(datasetKeys['chkVtb1'],0,1000,'rank=SPECIES&rank=SUBSPECIES'); //the default checklist is VT Butterflies. Prolly should make that explicit, here.
+    console.log(`vbaFlightTimes=>getGbifSpeciesDataset`, butts);
+    offset = offset < butts.results.length ? offset : butts.results.length - 1;
+    limit = (offset+limit) < butts.results.length ? limit : butts.results.length - offset;
+    setTitleText();
+    for (var i=offset; i<(offset+limit); i++) {
+        let taxon = butts.results[i];
+        if (('SPECIES' == taxon.rank.toUpperCase() || 'SUBSPECIES' == taxon.rank.toUpperCase()) && 'ACCEPTED' == taxon.taxonomicStatus.toUpperCase()) {
+            let pheno = await gbifCountsByWeekByTaxonName(taxon.canonicalName);
+            //let pheno = await gbifCountsByWeekByTaxonKey(taxon).nubKey);
+            addTaxonRow(pheno, taxon, rowIdx++);
+        }
+    }
+    addWeekHead();
+    delPageWait();
+} 
+else if (taxonNameA.length || taxonKeyA.length) {
     addPageWait();
     for (var i=0; i<taxonNameA.length; i++) {
         let taxonName = taxonNameA[i];
@@ -149,25 +168,9 @@ if (taxonNameA || taxonKeyA) {
     setTitleText(`Vermont Atlas of Life GBIF Phenology`, taxonNameA, taxonKeyA);
     addWeekHead();
     delPageWait();
-} else if (butterflies) {
-    let rowIdx = 0;
-    addPageWait();
-    let butts = await getGbifSpeciesDataset(datasetKeys['chkVtb1'],0,1000,'rank=SPECIES&rank=SUBSPECIES'); //the default checklist is VT Butterflies. Prolly should make that explicit, here.
-    console.log(`vbaFlightTimes=>getGbifSpeciesDataset`, butts);
-    offset = offset < butts.results.length ? offset : butts.results.length - 1;
-    limit = (offset+limit) < butts.results.length ? limit : butts.results.length - offset;
-    setTitleText();
-    for (var i=offset; i<(offset+limit); i++) {
-        let taxon = butts.results[i];
-        if (('SPECIES' == taxon.rank.toUpperCase() || 'SUBSPECIES' == taxon.rank.toUpperCase()) && 'ACCEPTED' == taxon.taxonomicStatus.toUpperCase()) {
-            let pheno = await gbifCountsByWeekByTaxonName(taxon.canonicalName);
-            //let pheno = await gbifCountsByWeekByTaxonKey(taxon).nubKey);
-            addTaxonRow(pheno, taxon, rowIdx++);
-        }
-    }
-    addWeekHead();
-    delPageWait();
-} else {
+} 
+else 
+{
     alert(`Must call with at least a query parameter like taxonName=Danaus plexippus. Alternatively pass butterflies=true, and use &offset=10&limit=10 to view content.`)
 }
 
