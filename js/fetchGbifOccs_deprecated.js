@@ -1,4 +1,4 @@
-import { fetchJsonFile } from "./commonUtilities.js";
+import { fetchJsonFile } from "./commonUtilities_deprecated.js";
 
 let gbifApi = "https://api.gbif.org/v1";
 export const datasetKeys = {"vba1":"0901cecf-55f1-447e-8537-1f7b63a865a0"};

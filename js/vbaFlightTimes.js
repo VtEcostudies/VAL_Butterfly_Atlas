@@ -5,9 +5,10 @@ import { getGbifTaxonObjFromName } from '../VAL_Web_Utilities/js/commonUtilities
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js'
 
 const objUrlParams = new URLSearchParams(window.location.search);
-const taxonName = objUrlParams.get('taxonName'); //Single taxon name
-const butterflies = objUrlParams.get('butterflies'); //Single taxon name
+const taxonNameA = objUrlParams.getAll('taxonName'); //Array of taxon names?
 const taxonKeyA = objUrlParams.getAll('taxonKey'); //Array of taxon keys
+const butterflies = objUrlParams.get('butterflies'); //Single query param
+console.log('Query Param(s) taxonNames:', taxonNameA);
 console.log('Query Param(s) taxonKeys:', taxonKeyA);
 var offset = 0, limit = 10;
 let off = Number(objUrlParams.get('offset'));
@@ -16,20 +17,38 @@ offset = off ? off : offset;
 limit = lim ? lim : limit;
 console.log('offset', offset, 'limit', limit, 'off', off, 'lim', lim);
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
-//var sheetVernacularNames = getSheetVernaculars();
-
+/*
 var other = ''; var objOther = {};
 objUrlParams.forEach((val, key) => {
-    if ('taxonName'!=key && 'butterflies'!=key && 'taxonKey'!=key) {
+    if ('taxonName'!=key && 'taxonKey'!=key && 'butterflies'!=key) {
       other += `&${key}=${val}`;
       objOther[key] = val;
     }
   });
-  
+*/  
 const eleTbl = document.getElementById("flightTimesTable");
 const eleTtl = document.getElementById("flightTimesTitle");
 
 var todayWeekColumnId = 0; //the columnId in the table of this week in the year, to (hopefully) auto-sort by that phenology
+
+const waitDiv = document.getElementById("pageWait");
+var waitObj;
+async function addPageWait() {
+    if (waitDiv) {    
+        waitObj = document.createElement('i');
+        console.log('addPageWait', waitObj);
+        waitDiv.append(waitObj);
+        waitObj.style = 'text-align: center;';
+        waitDiv.style = 'text-align: center;';
+        waitObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:60px;"></i>`;
+    } else {
+        console.log('addPageWait | Element ID pageWait not found')
+    }
+}
+
+async function delPageWait() {
+    if (waitObj) {waitObj.remove();}
+}
 
 let monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 //head row of month names every 4ish weeks
@@ -63,6 +82,7 @@ async function addWeekHead() {
 async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     let colIdx = -1;
     let objRow = eleTbl.insertRow(rowIdx);
+    //eleTbl.append(objRow); //doing this orders table rows properly, but causes dataTable to fail
 
     let objCol = objRow.insertCell(++colIdx);
     //let aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://gbif.org/species/${taxon.nubKey}">${taxon.canonicalName}</a>`
@@ -100,30 +120,43 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     }
 }
 
-function setTitleText(taxonName=false, taxonKeys=false, offset=false, limit=false) {
+function setTitleText(text='VT Butterfly Atlas Flight Times', taxonNameA=[], taxonKeyA=[], butteflies=false, offset=false, limit=false) {
     if (eleTtl) {
-        eleTtl.innerHTML = 
-        `VT Butterfly Atlas Flight Times`;
+        eleTtl.innerText = text;
     }
 }
 
-if (taxonName) {
-    let match = await getGbifTaxonObjFromName(taxonName); 
-    console.log(`vbaFlightTimes=>getGbifTaxonObjFromName(${taxonName})`, match);
-    let taxon = await getGbifSpeciesByTaxonKey(match.usageKey);
-    console.log(`vbaFlightTimes=>getGbifSpeciesByTaxonKey(${taxon.canonicalName})`, taxon);
-    let pheno = await gbifCountsByWeek(taxon.canonicalName);
-    console.log(`vbaFlightTimes=>gbifCountsByWeek(${taxon.canonicalName})`, pheno);
-    setTitleText();
-    addTaxonRow(pheno, taxon);
+if (taxonNameA || taxonKeyA) {
+    addPageWait();
+    for (var i=0; i<taxonNameA.length; i++) {
+        let taxonName = taxonNameA[i];
+        let match = await getGbifTaxonObjFromName(taxonName); 
+        console.log(`vbaFlightTimes=>getGbifTaxonObjFromName(${taxonName})`, match);
+        let taxon = await getGbifSpeciesByTaxonKey(match.usageKey);
+        console.log(`vbaFlightTimes=>getGbifSpeciesByTaxonKey(${taxon.canonicalName})`, taxon);
+        let pheno = await gbifCountsByWeek(taxon.canonicalName);
+        console.log(`vbaFlightTimes=>gbifCountsByWeek(${taxon.canonicalName})`, pheno);
+        addTaxonRow(pheno, taxon, i);
+    }
+    for (var i=0; i<taxonKeyA.length; i++) {
+        let taxonKey = taxonKeyA[i];
+        let taxon = await getGbifSpeciesByTaxonKey(taxonKey);
+        console.log(`vbaFlightTimes=>getGbifSpeciesByTaxonKey(${taxon.canonicalName})`, taxon);
+        let pheno = await gbifCountsByWeekByTaxonKey(taxonKey);
+        console.log(`vbaFlightTimes=>gbifCountsByWeekByTaxonKey(${taxonKey})`, pheno);
+        addTaxonRow(pheno, taxon, i);
+    }
+    setTitleText(`Vermont Atlas of Life Phenology`, taxonNameA, taxonKeyA);
     addWeekHead();
+    delPageWait();
 } else if (butterflies) {
+    let rowIdx = 0;
+    addPageWait();
     let butts = await getGbifSpeciesDataset(datasetKeys['chkVtb1'],0,1000,'rank=SPECIES&rank=SUBSPECIES'); //the default checklist is VT Butterflies. Prolly should make that explicit, here.
     console.log(`vbaFlightTimes=>getGbifSpeciesDataset`, butts);
     offset = offset < butts.results.length ? offset : butts.results.length - 1;
     limit = (offset+limit) < butts.results.length ? limit : butts.results.length - offset;
     setTitleText();
-    let rowIdx = 0;
     for (var i=offset; i<(offset+limit); i++) {
         let taxon = butts.results[i];
         if (('SPECIES' == taxon.rank.toUpperCase() || 'SUBSPECIES' == taxon.rank.toUpperCase()) && 'ACCEPTED' == taxon.taxonomicStatus.toUpperCase()) {
@@ -133,6 +166,7 @@ if (taxonName) {
         }
     }
     addWeekHead();
+    delPageWait();
 } else {
     alert(`Must call with at least a query parameter like taxonName=Danaus plexippus. Alternatively pass butterflies=true, and use &offset=10&limit=10 to view content.`)
 }
