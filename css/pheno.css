@@ -22,6 +22,8 @@
     width: 0px;
     margin-left: 1px;
     margin-right: 1px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .phenoCell {
@@ -51,10 +53,17 @@
     font-size: x-small;
 }
 
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    max-width: 1200px;
+}
+  
 td {
     border:1px solid lightgrey;
     text-align:center;
-    font-size:medium;
+    font-size:small;
 }
 
 thead tr td {
@@ -70,30 +79,6 @@ table tr {
 }
 
 .taxonInfo {
-    min-width:80px;
     padding-left:3px;
     padding-right:3px;
 }
-
-.taxonName {
-    min-width: 90px;
-}
-
-/*
-td:nth-child(1) {
-    min-width:90px;
-    padding-left:3px;
-    padding-right:3px;
-}
-
-td:nth-child(2) {
-    min-width:50px;
-    padding-left:3px;
-    padding-right:3px;
-}
-*/
-/*
-tr:nth-child(1) td {
-    border:none;
-}
-*/
