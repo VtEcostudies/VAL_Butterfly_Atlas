@@ -2,8 +2,6 @@ import { gbifCountsByWeek, gbifCountsByWeekByTaxonKey, gbifCountsByWeekByTaxonNa
 import { datasetKeys } from "../VAL_Web_Utilities/js/fetchGbifSpecies.js";
 import { getGbifSpeciesDataset, getGbifSpeciesByTaxonKey } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getGbifTaxonObjFromName } from '../VAL_Web_Utilities/js/commonUtilities.js';
-import { tableSortTrivial } from '../VAL_Web_Utilities/js/tableSortTrivial.js';
-import { tableSortSimple } from '../VAL_Web_Utilities/js/tableSortSimple.js'
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js'
 
 const objUrlParams = new URLSearchParams(window.location.search);
@@ -37,41 +35,54 @@ async function addWeekHead() {
     let colIdx = -1;
     let objHed = eleTbl.createTHead();
     let hedRow = objHed.insertRow(0);
-    let colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'Accepted'; colObj.id = 'taxonName';
-    colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'Common'; colObj.id = 'commonName';
-    colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'VT Obs'; colObj.id = 'obsCount';
+    let colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'Accepted';
+    colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'Common';
+    colObj = hedRow.insertCell(++colIdx); colObj.innerText = 'VT Obs';
     let month = 0;
     for (var week=1; week<54; week++) {
         colObj = await hedRow.insertCell(colIdx + week);
-        let weeksPerMonth = 31/7; //(366/12)/7;
+        colObj.innerHTML = `<div class="weekHeaderNumber">${week}</div>`;
+        let weeksPerMonth = 31/7;
         if (week/weeksPerMonth > month) {
             month++;
-            colObj.innerText = monthName[month-1];
+            colObj.innerHTML += `<div class="monthHeaderName">${monthName[month-1]}</div>`;
+        } else {
+            colObj.innerHTML += `<div class="monthHeaderName">&nbsp</div>`; //nbsp is required placeholder
         }
+        colObj.addEventListener("click", (e) => {
+            //console.log(e);
+            //e.target.classList.toggle("weekHeaderSelected");
+            //e.target.parentElement.classList.toggle("weekHeaderSelected");
+        }); 
     }
 }
 
 async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
     let colIdx = -1;
-    let objRow = await eleTbl.insertRow(rowIdx);
+    let objRow = eleTbl.insertRow(rowIdx);
+
     let objCol = objRow.insertCell(++colIdx);
-    let aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://gbif.org/species/${taxon.nubKey}">${taxon.canonicalName}</a>`
-    aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://val.vtecostudies.org/species-profile?taxonName=${taxon.canonicalName}">${taxon.canonicalName}</a>`
+    //let aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://gbif.org/species/${taxon.nubKey}">${taxon.canonicalName}</a>`
+    let aTag = `<a title="VAL Species Profile: ${taxon.canonicalName}" href="https://val.vtecostudies.org/species-profile?taxonName=${taxon.canonicalName}">${taxon.canonicalName}</a>`
     objCol.innerHTML = aTag;
-    objCol.classList.add('taxonName');
+    objCol.classList.add('taxonInfo');
+
     let verna = taxon.vernacularNames ? (taxon.vernacularNames.length ? taxon.vernacularNames[0].vernacularName : '') : '';
     verna = verna ? verna : taxon.vernacularName;
-    objCol = objRow.insertCell(++colIdx); objCol.innerText = verna; objCol.classList.add('taxonName');
     objCol = objRow.insertCell(++colIdx); 
-    //objCol.innerText = pheno.total; 
-    aTag = `<a title="GBIF Species Profile: ${taxon.canonicalName}" href="https://val.vtecostudies.org/gbif-explorer?taxonKey=${taxon.nubKey}&view=MAP">${pheno.total}</a>`
+    objCol.innerText = verna;
+    objCol.classList.add('taxonInfo');
+
+    objCol = objRow.insertCell(++colIdx); 
+    aTag = `<a title="VAL Data Explorer: ${taxon.canonicalName}" href="https://val.vtecostudies.org/gbif-explorer?taxonKey=${taxon.nubKey}&view=MAP">${pheno.total}</a>`
     objCol.innerHTML = aTag;
-    objCol.classList.add('taxonName'); //row total VT Observations
+    objCol.classList.add('taxonInfo'); //row total VT Observations
+
     let month = 0;
     for (var week=1; week<54; week++) {
         let wCount = pheno.weekSum[week] ? pheno.weekSum[week] : 0;
-        let wFreq = Math.floor(wCount/pheno.total*100);
-        if (0 == wCount) {wFreq = 0;} //the above turns 0/0 into 1
+        let wFreq = Math.ceil(wCount/pheno.total*100);
+        wFreq = Math.ceil(wCount / Math.sqrt(wCount))
         let todayWeekClass = pheno.weekToday == week ? 'phenoCellToday' : false; 
         objCol = objRow.insertCell(colIdx + week);
         if (todayWeekClass) {
@@ -80,8 +91,9 @@ async function addTaxonRow(pheno=false, taxon=false, rowIdx=0) {
         }
         objCol.innerHTML += `<div class="phenoBarWeek" style="height:${wFreq}px;"></div>`;
         objCol.setAttribute('data-sort', `${wCount}`); //to sort by phenoWeek, must add the dataTables sort attribute to objCol, not inner div
-        objCol.setAttribute('data-order', `${wCount}`); //to sort by phenoWeek, must add the dataTables sort attribute to objCol, not inner div
-        objCol.setAttribute('title',  `${wCount}`);
+        //objCol.setAttribute('data-order', `${wCount}`); //to sort by phenoWeek, must add the dataTables sort attribute to objCol, not inner div
+        objCol.setAttribute('title',  `${wCount}=>${wFreq}`);
+        objCol.classList.add('phenoCell');
     }
 }
 
@@ -114,7 +126,14 @@ if (taxonName) {
 }
 
 $('#flightTimesTable').ready(() => {
-    tableSortHeavy('flightTimesTable', todayWeekColumnId, [], 'desc'); //columnId 2 is VT Obs count
-    //tableSortSimple('flightTimesTable');
-    //tableSortTrivial('flightTimesTable');
+    let columnDefs =  [
+        { "orderSequence": [ "asc", "desc" ], "targets": [ 0,1 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 2,3,4,5,6,7,8,9 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 10,11,12,13,14,15,16,17,18,19 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 20,21,22,23,24,25,26,27,28,29 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 30,31,32,33,34,35,36,37,38,39 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 40,41,42,43,44,45,46,47,48,49 ] },
+        { "orderSequence": [ "desc", "asc" ], "targets": [ 50,51,52,53 ] }
+    ];
+    tableSortHeavy('flightTimesTable', todayWeekColumnId, [], columnDefs); //columnId 2 is VT Obs count
 });

@@ -1,14 +1,37 @@
 
 .phenoBarWeek {
-    border-left: 6px solid green;
+    border-left: 0px solid green;
+    border-right: 8px solid green;
     text-align: center;
     width: 0px;
-    margin-left: 2px;
-    margin-right: 2px;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+
+.phenoCell {
+
 }
 
 .phenoCellToday {
     background-color: aqua;
+}
+
+.weekHeaderNumber {
+    vertical-align: super;
+    font-size: xx-small;
+}
+
+.weekHeaderNumber:hover {
+    font-weight: bold;
+}
+
+.weekHeaderSelected {
+    background-color: blueviolet;
+}
+
+.monthHeaderName {
+    vertical-align: sub;
+    font-size: x-small;
 }
 
 td {
@@ -16,19 +39,32 @@ td {
     width:10px;
     max-width:10px;
     min-width:10px;
-    text-align: center;
+    text-align:center;
+    font-size:medium;
+}
+
+thead tr td {
+    cursor: pointer;
+}
+
+thead tr td:hover {
+    background-color: yellowgreen;
 }
 
 table tr {
-    border:1px solid black !important;
+    border:2px solid black !important;
 }
 
-.taxonName {
-    /*width:100%;*/
+.taxonInfo {
     min-width:90px;
     padding-left:3px;
     padding-right:3px;
 }
+
+.taxonName {
+    min-width: 110px;
+}
+
 /*
 td:nth-child(1) {
     min-width:90px;
