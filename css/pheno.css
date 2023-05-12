@@ -14,12 +14,18 @@
     margin-left: auto;
     margin-right: auto;
 }
+
+.taxonInfo {
+    padding-left:3px;
+    padding-right:3px;
+    max-width: 120px;
+}
   
 .phenoBarWeek {
-    border-left: 0px solid green;
-    border-right: 10px solid green;
+    background-color: green; /* this fills-in between the borders */
     text-align: center;
-    width: 0px;
+    width: 90%;
+    min-width: 10px; /* total=12px with margins. this is what keeps the cells from shrinking too far */
     margin-left: 1px;
     margin-right: 1px;
     margin-top: 2px;
@@ -27,8 +33,9 @@
 }
 
 .phenoCell {
-    max-width:12px;
+    max-width:20px;
     min-width:12px;
+    width: 12px;
 }
 
 .phenoCellToday {
@@ -53,11 +60,15 @@
     font-size: x-small;
 }
 
+.no-stretch-cell {
+    max-width: 6px;
+}
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
     width: 100%;
-    max-width: 1200px;
+    /*max-width: 1200px;*/
 }
   
 td {
@@ -76,9 +87,4 @@ thead tr td:hover {
 
 table tr {
     border:2px solid black !important;
-}
-
-.taxonInfo {
-    padding-left:3px;
-    padding-right:3px;
 }
