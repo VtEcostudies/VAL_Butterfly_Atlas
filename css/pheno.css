@@ -52,12 +52,12 @@
     font-size: 10px;
 }
 
-.weekHeaderCell:hover .no-stretch-cell {
-    max-width: 20px;
+.infoHeaderCell {
+    text-decoration: underline;
 }
 
-.weekHeaderCell:hover .monthHeaderName {
-    max-width: 20px;
+.infoHeaderCell:hover {
+    font-weight: bold;
 }
 
 .monthHeaderName {
@@ -82,12 +82,15 @@ td {
     font-size:small;
 }
 
+thead {
+    background-color: oldlace;
+}
 thead tr td {
     cursor: pointer;
 }
 
 thead tr td:hover {
-    background-color: yellowgreen;
+    background-color: gold;
 }
 
 table tr {
