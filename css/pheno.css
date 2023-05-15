@@ -1,3 +1,47 @@
+/* 
+    Resize the dataTables drop-down box to fit number and down-arrow 
+    Naming: DataTables appends _wrapper and _length to our table's id.
+*/
+#phenologyTable_wrapper #phenologyTable_length select {
+    width: 50%;
+}
+
+/* 
+    Alter the display of the Datatables sorting icons in header cells 
+*/
+table.dataTable thead>tr>th.sorting:before, 
+table.dataTable thead>tr>th.sorting:after, 
+table.dataTable thead>tr>th.sorting_asc:before, 
+table.dataTable thead>tr>th.sorting_asc:after, 
+table.dataTable thead>tr>th.sorting_desc:before, 
+table.dataTable thead>tr>th.sorting_desc:after, 
+table.dataTable thead>tr>th.sorting_asc_disabled:before, 
+table.dataTable thead>tr>th.sorting_asc_disabled:after, 
+table.dataTable thead>tr>th.sorting_desc_disabled:before, 
+table.dataTable thead>tr>th.sorting_desc_disabled:after, 
+table.dataTable thead>tr>td.sorting:before, 
+table.dataTable thead>tr>td.sorting:after, 
+table.dataTable thead>tr>td.sorting_asc:before, 
+table.dataTable thead>tr>td.sorting_asc:after, 
+table.dataTable thead>tr>td.sorting_desc:before, 
+table.dataTable thead>tr>td.sorting_desc:after, 
+table.dataTable thead>tr>td.sorting_asc_disabled:before, 
+table.dataTable thead>tr>td.sorting_asc_disabled:after, 
+table.dataTable thead>tr>td.sorting_desc_disabled:before, 
+table.dataTable thead>tr>td.sorting_desc_disabled:after
+{
+     position: relative; /* Override Datatables 'absolute' */
+    /* display: block; */
+    /* opacity: .125; */
+    right: 0px;
+    /* top: 5px;*/
+    /* line-height: 9px;*/
+    font-size: .7em !important; /* Override Datatables '.8em' */
+}
+
+body {
+    margin: 5px;
+}
 
 .container {
     padding: 0px;
@@ -16,16 +60,17 @@
 }
 
 .taxonInfo {
+    text-align: center !important;
     padding-left:3px;
     padding-right:3px;
     max-width: 120px;
 }
-  
+
 .phenoBarWeek {
-    background-color: green; /* this fills-in between the borders */
+    background-color: green; /* this fills-in between the borders. this can be done with a left or right border, as well. */
     text-align: center;
-    width: 90%;
-    min-width: 7px; /* total=9px with margins. this is what keeps the cells from shrinking too far */
+    width: 90%; /* this allow the bar to resize to cell-width */
+    min-width: 8px; /* total=10px with margins. this is what keeps the cells from shrinking too far */
     margin-left: 1px;
     margin-right: 1px;
     margin-top: 2px;
@@ -34,14 +79,16 @@
 
 .phenoCell {
     max-width:20px;
-    /*min-width:9px;*/
-    width: 12px;
+    min-width:10px;
+    /*width: 12px;*/
+    z-index: 1 !important;
 }
 
 .phenoCellToday {
     background-color: aqua;
 }
 
+/* When we apply a numeric pixel-size here, browser font-size changes don't affect their size. */
 .weekHeaderNumber {
     vertical-align: super;
     font-size: 7px; /*xx-small;*/
@@ -49,20 +96,21 @@
 
 .weekHeaderCell:hover .weekHeaderNumber {
     font-weight: bold;
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .infoHeaderCell {
-    text-decoration: underline;
+    /*text-decoration: underline;*/
 }
 
 .infoHeaderCell:hover {
-    font-weight: bold;
+    /*font-weight: bold;*/
 }
 
 .monthHeaderName {
     vertical-align: sub;
-    font-size: x-small;
+    font-size: small; /*16px; /*x-small;*/
+    z-index: 100000;
 }
 
 .no-stretch-cell { /* prevents the month name from growing the phenoCell. it overlaps instead. */
@@ -70,21 +118,20 @@
 }
 
 table {
-    border-collapse: collapse;
+    border-collapse: collapse !important;
     border-spacing: 0;
     width: 100%;
     /*max-width: 1200px;*/
 }
-  
-td {
-    border:1px solid lightgrey;
-    text-align:center;
-    font-size:small;
+
+table.dataTable {
+    border-collapse: collapse !important;
 }
 
 thead {
     background-color: oldlace;
 }
+
 thead tr td {
     cursor: pointer;
 }
@@ -93,6 +140,16 @@ thead tr td:hover {
     background-color: gold;
 }
 
-table tr {
+tr {
     border:2px solid black !important;
+}
+  
+td {
+    border:1px solid lightgrey !important;
+    text-align:center !important;
+    font-size:small;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
