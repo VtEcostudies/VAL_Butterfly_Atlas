@@ -1,7 +1,7 @@
 <?php
 
 	/*
-		Template Name: Project Child
+		Template Name: VAL Phenology
 	*/
 
 ?>

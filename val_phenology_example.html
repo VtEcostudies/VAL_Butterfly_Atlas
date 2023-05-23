@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="css/pheno.css">
+    <link rel="stylesheet" href="https://vtatlasoflife.org/val_vba/css/pheno.css">
 
     <!-- Make sure to put Leaflet JS AFTER Leaflet CSS -->
     <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
@@ -20,19 +20,16 @@
     <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script src="js/moment.min.js"></script>
+    <script src="https://vtatlasoflife.org/VAL_Web_Utilities/js/moment.min.js"></script>
 
-    <script type="module" src="VAL_Web_Utilities/js/gbifVtPhenology.js"></script>
+    <script src="https://vtatlasoflife.org/VAL_Web_Utilities/js/gbifVtPhenology.js" crossorigin="anonymous" type="module"></script>
 </head>
 <body>
+    <div id="pageWait"></div>
     <div>
         <p id="phenologyParamsInfo"></p>
     </div>
-    <div class="centerTitle">
-        <h5 id="phenologyTitle"></h5>
-    </div>
-    <div id="pageWait"></div>
-    <div id="phenologyDiv">
+    <div id="phenologyDiv" style="width:33%;">
         <table id="phenologyTable" class="centerTable"></table>
     </div>
 </body>

@@ -283,9 +283,10 @@ function onGeoBoundaryFeature(feature, layer) {
         switch(key.toLowerCase()) {
           case 'blockname':
             tips = `${obj[key]}<br>`;
-            let block = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
-            if (sheetSignUps[block]) {
-              tips += `${sheetSignUps[block].first} ${sheetSignUps[block].last}`;
+            let blok = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+            if (sheetSignUps[blok]) {
+              for (const name of sheetSignUps[blok])
+              tips += `${name.first} ${name.last} on ${name.date.split(' ')[0]}<br>`;
             }
             break;
           case 'townname':
@@ -329,11 +330,14 @@ function onGeoBoundaryFeature(feature, layer) {
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
           pops += `<a target="_blank" href="https://s3.us-west-2.amazonaws.com/val.surveyblocks/${link}.pdf">Get <b>BLOCK MAP</b> for ${name}</a></br></br> `;
         }
-        if (sheetSignUps[link]) {  
-          pops += `Survey block was chosen by <b>${sheetSignUps[link].first} ${sheetSignUps[link].last}</b> on ${sheetSignUps[link].date}</br></br>`;
-        } else {
-          pops += `<a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSegdid40-VdB_xtGvHt-WIEWR_TapHnbaxj-LJWObcWrS5ovg/viewform?usp=pp_url&entry.1143709545=${link}"><b>SIGN-UP</b> for ${name}</a></br></br>`;
+        if (sheetSignUps[link]) {
+          let names = sheetSignUps[link];
+          //console.log(`sheetSignups for ${link}`, names);
+          for (const name of names) {
+            pops += `Chosen by <b>${name.first} ${name.last}</b> on ${name.date.split(' ')[0]}</br></br>`;
+          }
         }
+        pops += `<a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSegdid40-VdB_xtGvHt-WIEWR_TapHnbaxj-LJWObcWrS5ovg/viewform?usp=pp_url&entry.1143709545=${link}"><b>SIGN-UP</b> for ${name}</a></br></br>`;
         pops += `<a target="_blank" href="vba_species_list.html?block=${name}&geometry=${gWkt}">Get <b>SPECIES LIST</b> for ${name}</a></br>`;
         if (pops) {layer.bindPopup(pops).openPopup();}
       }
@@ -359,10 +363,10 @@ function onGeoBoundaryStyle(feature) {
     let blockType = feature.properties.BLOCK_TYPE;
     if (sheetSignUps[blockName]) {
       if ('PRIORITY' == blockType.toUpperCase()) {
-        console.log(`onGeoBoundaryStyle found PRIORITY block signup for`, blockName);
+        //console.log(`onGeoBoundaryStyle found PRIORITY block signup for`, blockName);
         style = signupPriorityStyle;
       } else {
-        console.log(`onGeoBoundaryStyle found NON-PRIORITY block signup for`, blockName);
+        //console.log(`onGeoBoundaryStyle found NON-PRIORITY block signup for`, blockName);
         style = signupNonPriorStyle;
       }
 }
@@ -888,11 +892,11 @@ function putSignups(sign) {
         }
         if (sign[blockName]) {
           if ('PRIORITY' == blockType.toUpperCase()) {
-            console.log(`putSignups found PRIORITY block signup for`, blockName);
+            //console.log(`putSignups found PRIORITY block signup for`, blockName);
             subLay.setStyle(signupPriorityStyle);
             prioritySignupCount++;
           } else {
-            console.log(`putSignups found NON-PRIORITY block signup for`, blockName);
+            //console.log(`putSignups found NON-PRIORITY block signup for`, blockName);
             subLay.setStyle(signupNonPriorStyle);
             nonPriorSignupCount++;
           }
@@ -907,9 +911,13 @@ function listSignups(sign) {
   let html = `<u><b>${sCnt} TOTAL block sign-ups</b></u><br>`
   html += `<u style="color:${signupPriorityStyle.fillColor};"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
   html += `<u style="color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor}"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
-  for (const blk in sign) {
-    let style = priorityBlockArray[blk] ? `color:${signupPriorityStyle.fillColor}; background-color:${signupPriorityStyle.bgColor}` : `color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor};`;
-    html += `<span style="${style}">${blk}: ${(sign[blk].first)} ${(sign[blk].last)}</span><br>`;
+  for (const blok in sign) {
+    let style = priorityBlockArray[blok] ? `color:${signupPriorityStyle.fillColor}; background-color:${signupPriorityStyle.bgColor}` : `color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor};`;
+    let names = sign[blok];
+    //console.log(`listSignups for ${blok}:`, names);
+    for (const name of names) {
+      html += `<span style="${style}">${blok}: ${name.first} ${name.last}</span><br>`;
+    }
   }
   zoomVT();
   let popup = L.popup({
