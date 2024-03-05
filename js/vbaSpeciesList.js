@@ -206,8 +206,11 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
                 break;
             case 'eventDate':
                 colObj = objRow.insertCell(colIdx++);
-                let date = val ? moment(val).format('YYYY-MM-DD') : 'N/A';
-                colObj.innerHTML = colObj.innerHTML = `<a title="Gbif Occurrence Record: ${objSpc.gbifId}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
+                let rang = val.split('/'); if (rang[1]) {console.log(`Occurrence having date range: ${val}`);}
+                let date = val ? val.split('/')[0] : false;
+                date = date ? moment(date).format('YYYY-MM-DD') : 'N/A';
+                //let date = val ? moment(val).format('YYYY-MM-DD') : 'N/A';
+                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${objSpc.gbifId} Date: ${val}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
                 break;
             case 'vernacularName': //don't use GBIF occurrence value for vernacularName, use VAL checklist or VAL google sheet
                 colObj = objRow.insertCell(colIdx++);
