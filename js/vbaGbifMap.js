@@ -321,8 +321,9 @@ function onGeoBoundaryFeature(feature, layer) {
         let cdts = feature.geometry.coordinates[0][0];
         let gWkt = 'POLYGON((';
         //console.log('feature.geometry.coordinates[0][0]', cdts)
-        for (var i=0; i<cdts.length; i++) {
-          //console.log(`feat.geom.cdts[0][0][${i}]`, cdts[i]);
+        //for (var i=0; i<cdts.length; i++) { //GBIF changed their WKT parser to only handle anti-clockwise POLYGON vertices. Reverse order:
+        for (var i=cdts.length-1; i>=0; i--) {
+            console.log(`vbaGbifMap.js=>onGeoBoundaryFeature=>click(): feat.geom.cdts[0][0][${i}]`, cdts[i]);
           gWkt += `${cdts[i][0]} ${cdts[i][1]},`;
         }
         gWkt = gWkt.slice(0,-1) + '))';
