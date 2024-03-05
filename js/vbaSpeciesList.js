@@ -197,12 +197,12 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx) {
             case 'scientificName':
                 colObj = objRow.insertCell(colIdx++);
                 //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
-                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?taxonName=${val}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?siteName=vtButterflies&taxonName=${val}">${val}</a>`;
                 break;
             case 'acceptedName':
                 colObj = objRow.insertCell(colIdx++);
                 //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
-                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?taxonName=${val}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?siteName=vtButterflies&taxonName=${val}">${val}</a>`;
                 break;
             case 'eventDate':
                 colObj = objRow.insertCell(colIdx++);
