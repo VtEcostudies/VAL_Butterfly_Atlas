@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/doubleSlider.css">
 
     <!-- Make sure to put Leaflet JS AFTER Leaflet CSS -->
     <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
@@ -18,6 +19,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.min.js" integrity="sha512-Io0KK/1GsMMQ8Vpa7kIJjgvOcDSwIqYuigJEYxrrObhsV4j+VTOQvxImACNJT5r9O4n+u9/58h7WjSnT5eC4hA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script 
+    type="text/javascript" 
+    src="https://cdn.jsdelivr.net/gh/maxshuty/accessible-web-components@latest/dist/simpleRange.min.js">
+    </script>
 
     <script src="js/moment.min.js"></script>
 
@@ -32,6 +38,24 @@
             <label id="ebutInfoLabel" class="speciesListLabel"></label>
             <label id="inatInfoLabel" class="speciesListLabel"></label>
             <a id="gbifLink" class="speciesListLabel" href=""></a>
+        </div>
+        <div class="row">
+            <div class="col-lg-5 offset-3">
+                <div class="min-max-slider" data-legendnum="2">
+                    <input id="min" class="min" name="min" type="range" step="1" min="1800" max="2030" />
+                    <input id="max" class="max" name="max" type="range" step="1" min="1800" max="2030" />
+                </div>
+            </div>
+            <div class="col-lg-1">
+                <select id="atlas" class="drop-down">
+                    <option value="A">All</option>
+                    <option value="B">Before VBA1</option>
+                    <option value="1">VBA1</option>
+                    <option value="T">VBA1 - VBA2</option>
+                    <option value="2">VBA2</option>
+                    <option value="R">After VBA2</option>
+                </select>                
+            </div>
         </div>
         <table id="speciesListTable" class="table table-striped table-responsive"></table>
     </div> <!-- /container -->
