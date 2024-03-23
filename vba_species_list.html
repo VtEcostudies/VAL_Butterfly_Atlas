@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/speciesList.css">
     <link rel="stylesheet" href="css/doubleSlider.css">
 
     <!-- Make sure to put Leaflet JS AFTER Leaflet CSS -->
@@ -40,13 +41,13 @@
             <a id="gbifLink" class="speciesListLabel" href=""></a>
         </div>
         <div class="row">
-            <div class="col-lg-5 offset-3">
+            <div class="col-lg-4 offset-lg-2 col-md-4 offset-md-2 col-sm-6 offset-sm-3">
                 <div class="min-max-slider" data-legendnum="2">
                     <input id="min" class="min" name="min" type="range" step="1" min="1800" max="2030" />
                     <input id="max" class="max" name="max" type="range" step="1" min="1800" max="2030" />
                 </div>
             </div>
-            <div class="col-lg-1">
+            <div class="float-start col-lg-1 col-md-1 col-sm-4 offset-sm-2">
                 <select id="atlas" class="drop-down">
                     <option value="A">All</option>
                     <option value="B">Before VBA1</option>
@@ -57,7 +58,7 @@
                 </select>                
             </div>
         </div>
-        <table id="speciesListTable" class="table table-striped table-responsive"></table>
+        <table id="speciesListTable" class="table table-striped"></table>
     </div> <!-- /container -->
 </body>
 </html>

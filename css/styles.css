@@ -1,7 +1,3 @@
-/* Resize the dataTables drop-down box to fit number and down-arrow */
-#speciesListTable_wrapper #speciesListTable_length select {
-  width: 50%;
-}
 
 .layerControlItem { 
   display: inline; /* This inlines Leaflet's layer control items when they have grouped html elements, not just text. */

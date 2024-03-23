@@ -46,4 +46,5 @@ span.value.upper::before {content: "-";}
 
 .drop-down {
     margin-top: 20px;
+    margin-bottom: 20px;
 }

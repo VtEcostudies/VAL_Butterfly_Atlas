@@ -1,0 +1,48 @@
+/* Resize the dataTables drop-down box to fit number and down-arrow */
+#speciesListTable_wrapper #speciesListTable_length select {
+    width: 50%;
+}
+
+#speciesListTable {
+    width: 100% !important; /* this is what forces the table and columns to resize on-the-fly as the screen is resized. */
+}
+
+@media screen and (max-width: 900px) {
+    .container {
+        width: 100%;
+        margin: 20px;
+    }
+}
+
+@media screen and (max-width: 680px) {
+    .container {
+        width: 100%;
+        margin: 10px
+    }
+    table {min-width: 200px; margin:10px;}
+    table td {max-width:100%;}
+    thead {display: none;}
+    tr:nth-child(odd) td:first-child {
+        background: white;
+        font-weight:bold;
+        font-size:1.3em;
+    }
+    tr:nth-child(even) td:first-child {
+        background: lightgray;
+        font-weight:bold;
+        font-size:1.3em;
+    }
+    tbody td {display: block;  text-align:center;}
+    tbody td:before {
+        content: attr(data-th);
+        display: block;
+        text-align:center;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: white !important;
+    }
+    tbody tr:nth-child(even) {
+        background-color: lightgray !important;
+    }
+}
+  

@@ -7,13 +7,14 @@ import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDa
 import { init,draw,update } from './doubleSlider.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 
+let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
+let showAll = 0; //flag to show all ranks - for testing
+
 let vtNameIndex = {}; let vtTkeyIndex = {};
 for (const spc of checklistVtButterflies.results) {
-    vtNameIndex[spc.canonicalName] = spc; //VT Butterflies indexed by name
-    vtTkeyIndex[spc.key] = spc; //VT Butterflies indexed by species-list key
+    vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
+    vtTkeyIndex[spc.key] = spc; //VT Butterflies Species-list indexed by species-list key, NOT nubKey
 }
-//console.log(vtNameIndex);
-//console.log(vtTkeyIndex);
 
 const objUrlParams = new URLSearchParams(window.location.search);
 const geometry = objUrlParams.get('geometry');
@@ -21,7 +22,7 @@ const dataset = objUrlParams.get('dataset');
 const block = objUrlParams.get('block');
 const year = objUrlParams.get('year');
 const taxonKeyA = objUrlParams.getAll('taxonKey');
-console.log('Query Param(s) taxonKeys:', taxonKeyA);
+console.log('Query Param(s) taxonKey:', taxonKeyA);
 const yearMin = 1800;
 const yearMax = 2030;
 
@@ -51,12 +52,15 @@ if (year) {
     let yrs = year.split(',');
     let min = yrs[0] ? Number(yrs[0]) : yearMin;
     let max = yrs[1] ? Number(yrs[1]) : yearMax;
+    if (1 == yrs.length) {max = min;} //if a single year was requested, set both to that value
+    //if (min < min) {min = yearMin;}
+    //if (max > max) {max = yearMax;}
     let avg = Math.floor((min + max)/2);
     console.log('Set slider to year values', min, max, avg);
     eleMin.setAttribute("data-value", min);
     eleMax.setAttribute("data-value", max);
-    sliders.forEach(slider => {draw(slider, avg)});
-    eleAtlas.value=null;
+    sliders.forEach(slider => {draw(slider, avg, min, max)});
+    eleAtlas.value=null; //unset atlas drop-down list
 }
 
 eleAtlas.addEventListener("change", ev => {
@@ -104,7 +108,7 @@ eleMin.addEventListener("change", ev => {
     let min = parseInt(ev.target.value);
     let max = parseInt(eleMax.value);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`);
-    eleAtlas.value=null;
+    eleAtlas.value=null; //unset atlas drop-down list
 
 })
 eleMax.addEventListener("change", ev => {
@@ -112,7 +116,7 @@ eleMax.addEventListener("change", ev => {
     let max = parseInt(ev.target.value);
     let min = parseInt(eleMin.value);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`);
-    eleAtlas.value=null;
+    eleAtlas.value=null; //unset atlas drop-down list
 
 })
 
@@ -140,7 +144,7 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
         let accGnus = occ.genus;
 
         if (sciName != accName) { //To-Do: does occ API return accName when GBIF backbone agrees with the taxon ID?
-            console.log('getBlockSpeciesListVT found occurrence having SYNONYM', sciName, accName, occ);
+            //console.log('getBlockSpeciesListVT found occurrence having SYNONYM', sciName, accName, occ);
         }
 
         let tax2Use =  false; let taxFrom = false; let spc = false;
@@ -157,11 +161,12 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             spc = vtNameIndex[accName];
             spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
         } else {
-            //console.log('NEITHER FOUND', sciName, accName, 'using Occ:', occ);
+            //console.log('NEITHER FOUND - SOURCE', sciName, accName, 'using Occ:', occ);
             tax2Use = accName;
             taxFrom = 'GBIF Backbone Accepted';
             spc = occ;
-            spc.taxonSource = taxFrom;
+            spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            console.log('NEITHER FOUND - RESULT', sciName, accName, 'using Occ:', occ, 'leaving spc:', spc);
         }
 
         if (spc.synonym && spc.accepted) {
@@ -187,25 +192,47 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             }
         }
 
+        if ('SPECIES' == spc.rank) {objGnus[spc.genus] = spc;} //create list of GENUS represented by lower taxa
+
         if (objSpcs[tax2Use]) { //We already added this taxon to our list. Check to replace name with more recent observation.
             if (spc.eventDate > objSpcs[tax2Use].eventDate) { //newer date. replace existing.
                 console.log('getBlockSpeciesListVT FOUND MORE RECENT OBSERVATION for', canName, spc.eventDate, '>', objSpcs[tax2Use].eventDate);
                 objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
             }
         } else { //Species taxon NOT found in our index. Add it.
-            objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
-/*
-            if ('SPECIES'==spc.rank) { //Always add SPECIES
+            if (showAll) {
                 objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
+            } else {
+                if ('SUBSPECIES'==spc.rank && showSubsp) {
+                    objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
+                }
+                if ('SPECIES'==spc.rank) { //Always add SPECIES
+                    objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
+                }
+                if ('GENUS'==spc.rank) { //Always add GENUS here. Remove below if redundant.
+                    objSpcs[tax2Use] = setDisplayObj(tax2Use, spc);
+                }
             }
-*/
         }
     }
-    console.log('FINISHED SPECIES LIST  ', objSpcs);
+    //we added records ranked GENUS, above. Now loop over the publishable object and remove GENUS records represented by SPECIES
+    for (const key in objSpcs) {
+        if ('GENUS' == objSpcs[key].taxonRank && objGnus[key]) {
+            console.log('DELETE GENUS', key, objGnus[key], objSpcs[key])
+            delete objSpcs[key];
+        }
+    }   
     return {
         'head': hedSpcs, 
-        //'cols': ['Taxon Key','Accepted Key','Applied Name','Accepted Name','Taxon Rank','Status','Source','Common Name','Image','Last Observed'], 
-        'cols': {taxonKey:'Taxon Key',scientificName:'Name',family:'Family',taxonRank:'Rank',taxonSource:'Source',vernacularName:'Common Name',image:'Image',eventDate:'Last Observed'}, 
+        'cols': {
+            taxonKey:'Taxon Key',
+            scientificName:'Name',
+            family:'Family',
+            taxonRank:'Rank',
+            //taxonSource:'Source',
+            vernacularName:'Common Name',
+            image:'Image',
+            eventDate:'Last Observed'}, 
         'array': objSpcs, 
         'query': occs.query
     };
@@ -214,7 +241,7 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
 //Object keys from a species list are different from keys from an occurrence search...
 function setDisplayObj(tax2Use, spc) {
     return {
-        'taxonKey': spc.key,
+        'taxonKey': spc.taxonKey ? spc.taxonKey : spc.key, //hack to handle occ results commingled with species results (occ.key is occurrence-key)
         'acceptedTaxonKey': spc.acceptedKey ? spc.acceptedKey : spc.acceptedTaxonKey,
         'subspKey': 'SUBSPECIES'==spc.rank ? spc.acceptedTaxonKey : false, //what is this reassignment?
         'speciesKey': spc.speciesKey, 'species': spc.species,
@@ -222,12 +249,12 @@ function setDisplayObj(tax2Use, spc) {
         'acceptedName': spc.accepted ? spc.accepted : spc.acceptedScientificName,
         'genusKey': spc.genusKey, 'genus': spc.genus,
         'familyKey': spc.familyKey, 'family': spc.family,
-        'taxonRank': spc.rank,
+        'taxonRank': spc.taxonRank ? spc.taxonRank: spc.rank, //hack to handle occ results commingled with species results (occ.rank doesn't exist)
         'taxonStatus': spc.taxonomicStatus,
         'taxonSource': spc.taxonSource,
         'vernacularName': spc.vernacularName ? spc.vernacularName : (spc.vernacularNames ? (spc.vernacularNames[0] ? spc.vernacularNames[0].vernacularName : false) : false),
         'vernacularNames': spc.vernacularNames ? spc.vernacularNames : [],
-        'image': false,
+        'image': false, //flag fillRow to show an image
         'eventDate': spc.eventDate,
         'gbifId': spc.gbifId
     }
@@ -250,7 +277,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
     let hedSpcs = 'Species List for ' + block + (dataset ? ` and dataset ${dataset}` : '')
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
-    console.log('getBlockSpecieslist', block, arrOccs);
+    //console.log('getBlockSpecieslist', block, arrOccs);
     for (var i=0; i<arrOccs.length; i++) {
         let sciName = parseCanonicalFromScientific(arrOccs[i], 'scientificName');
         let accName = parseCanonicalFromScientific(arrOccs[i], 'acceptedScientificName');
@@ -329,7 +356,16 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
     }
     return {
         'head': hedSpcs, 
-        'cols': ['Taxon Key','Accepted Key','Applied Name','Accepted Name','Taxon Rank','Common Name','Image','Last Observed'], 
+        'cols': {
+            taxonKey:'Taxon Key',
+            acceptedTaxonKey:'Accepted Key',
+            scientificName:'Applied Name',
+            acceptedName:'Accepted Name',
+            family:'Family',
+            taxonRank:'Rank',
+            vernacularName:'Common Name',
+            image:'Image',
+            eventDate:'Last Observed'}, 
         'array': objSpcs, 
         'query': occs.query
     };
@@ -394,31 +430,36 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
         let rawKey = objSpc.taxonKey;
         let accKey = objSpc.acceptedTaxonKey;
         //console.log('key:', key);
-        console.log('fillRow', key, val, hedObj[key], hedObj[`${key}`])
+        //console.log('fillRow', key, val, hedObj[key], hedObj[`${key}`])
         if (hedObj[key]) { //filter species object through header object
         switch(key) {
             case 'image':
                 colObj = objRow.insertCell(colIdx++);
                 colObj.innerHTML = `<i class="fa fa-spinner fa-spin" style="font-size:18px"></i>`;
-                let inat = getInatSpecies(spcKey, objSpc.taxonRank, objSpc.parent, getParentRank(objSpc.taxonRank)); 
-                inat.catch(err=> {console.log('getInatSpecies ERROR', err); getWikImg();});
-                inat.then(inat => {
-                    if (inat.default_photo) {
-                        colObj.innerHTML = '';
-                        let iconImg = document.createElement("img");
-                        iconImg.src = inat.default_photo.medium_url;
-                        iconImg.alt = inat.default_photo.attribution;
-                        iconImg.className = "icon-image";
-                        iconImg.width = "30"; 
-                        iconImg.height = "30";
-                        let hrefImg = document.createElement("a");
-                        hrefImg.href = inat.default_photo.medium_url;
-                        hrefImg.target = "_blank";
-                        colObj.appendChild(hrefImg);
-                        hrefImg.appendChild(iconImg);
-                    } else {getWikImg();}
-                })
-                function getWikImg() {
+                var att = 1;
+                getWikiImg(att);
+                function getInatImg(att) {
+                    att = 0;
+                    let inat = getInatSpecies(spcKey, objSpc.taxonRank, objSpc.parent, getParentRank(objSpc.taxonRank)); 
+                    inat.then(inat => {
+                        if (inat.default_photo) {
+                            colObj.innerHTML = '';
+                            let iconImg = document.createElement("img");
+                            iconImg.src = inat.default_photo.medium_url;
+                            iconImg.alt = inat.default_photo.attribution;
+                            iconImg.className = "icon-image";
+                            iconImg.width = "30"; 
+                            iconImg.height = "30";
+                            let hrefImg = document.createElement("a");
+                            hrefImg.href = inat.default_photo.medium_url;
+                            hrefImg.target = "_blank";
+                            colObj.appendChild(hrefImg);
+                            hrefImg.appendChild(iconImg);
+                        } else if (att) {console.log('getInatSpecies attempt wiki', att); att=0; getWikiImg(att);}
+                    })
+                    inat.catch(err=> {console.log('getInatSpecies attempt wiki', att, 'ERROR', err,); if (att) {att=0; getWikiImg(att);}});
+                }
+                function getWikiImg(att) {
                     let wik = getWikiPage(spcKey);
                     colObj.innerHTML = '';
                     wik.then(wik => {
@@ -434,8 +475,9 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                             hrefImg.target = "_blank";
                             colObj.appendChild(hrefImg);
                             hrefImg.appendChild(iconImg);
-                        }
+                        } else if (att) {console.log('getWikiImg attempt iNat', att); att=0; getInatImg(att);}
                     })
+                    wik.catch(err => {console.log('getWikiPage attempt iNat', att, 'ERROR', err); if (att) {att=0; getInatImg(att);}})
                 }
                 break;
             case 'scientificName':

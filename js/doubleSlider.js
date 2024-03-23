@@ -1,6 +1,6 @@
 var thumbsize = 14;
 
-export function draw(slider, splitvalue) {
+export function draw(slider, splitvalue, setMin=0, setMax=0) {
 
     /* set function vars */
     var min = slider.querySelector('.min');
@@ -10,8 +10,8 @@ export function draw(slider, splitvalue) {
     var legend = slider.querySelector('.legend');
     var thumbsize = parseInt(slider.getAttribute('data-thumbsize'));
     var rangewidth = parseInt(slider.getAttribute('data-rangewidth'));
-    var rangemin = parseInt(slider.getAttribute('data-rangemin'));
-    var rangemax = parseInt(slider.getAttribute('data-rangemax'));
+    var rangemin = setMin ? setMin : parseInt(slider.getAttribute('data-rangemin'));
+    var rangemax = setMax ? setMax : parseInt(slider.getAttribute('data-rangemax'));
 
     /* set min and max attributes */
     min.setAttribute('max',splitvalue);
@@ -29,13 +29,14 @@ export function draw(slider, splitvalue) {
     
     /* correct for 1 off at the end */
     //if(max.value>(rangemax - 1)) max.setAttribute('data-value',rangemax);
+    /* actually, don't do that. it prevents setting top-slider to max value. */
     if(max.value > rangemax) {max.setAttribute('data-value',rangemax);}
 
     /* write value and labels */
-    max.value = max.getAttribute('data-value');
-    min.value = min.getAttribute('data-value');
-    lower.innerHTML = min.getAttribute('data-value');
-    upper.innerHTML = max.getAttribute('data-value');
+    min.value = setMin ? setMin : min.getAttribute('data-value');
+    max.value = setMax ? setMax : max.getAttribute('data-value');
+    lower.innerHTML = setMin ? setMin : min.getAttribute('data-value');
+    upper.innerHTML = setMax ? setMax : max.getAttribute('data-value');
 
 }
 
