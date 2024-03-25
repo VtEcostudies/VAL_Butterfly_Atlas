@@ -6,6 +6,7 @@ import { checklistVtButterflies, checklistVernacularNames, getParentRank } from 
 import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDatasetUrl } from "../VAL_Web_Utilities/js/fetchGbifDataset.js";
 import { init,draw,update } from './doubleSlider.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
+import { tableSortHeavyNew } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
@@ -91,6 +92,10 @@ eleAtlas.addEventListener("change", ev => {
             min = 2023;
             max = 2027;
             break;
+        case "X": //VBA2 Target
+            min = 2002;
+            max = 2027;
+            break;
         case "R": //After VBA2
             min = 2028;
             max = yearMax;
@@ -120,14 +125,28 @@ eleMax.addEventListener("change", ev => {
 
 })
 
+async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
+    let page = {};
+    let results = [];
+    let off = 0;
+    let lim = 300;
+    let max = 9900;
+    do {
+      page = await getOccsByFilters(off, lim, dataset, gWkt, false, tKeys, years);
+      results = results.concat(page.results);
+      off += lim;
+      if (page.endOfRecords || off>max) {page.results = results; return page;}
+    } while (!page.endOfRecords && off<max);
+}  
+
 async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=false, tKeys=false, years=false) {
 
-    let occs = await getOccsByFilters(0,300,dataset,gWkt,false,tKeys,years);
-    //console.log('getBlockSpeciesListVT', occs);
+    //let occs = await getOccsByFilters(0,300,dataset,gWkt,false,tKeys,years);
+    let occs = await getBlockOccs(dataset,gWkt,tKeys,years);
     let hedSpcs = 'Species List for ' + block + (dataset ? ` and dataset ${dataset}` : '')
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
-    //console.log('getBlockSpeciesListVT', block, arrOccs);
+    console.log('vbaSpeciesList=>getBlockSpeciesListVT: block:', block, 'occ count:', arrOccs.length, 'results:', arrOccs);
     for (var i=0; i<arrOccs.length; i++) {
         let occ = arrOccs[i];
 
@@ -169,6 +188,7 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             console.log('NEITHER FOUND - RESULT', sciName, accName, 'using Occ:', occ, 'leaving spc:', spc);
         }
 
+        // Substitute accepted name for synonym if it exists
         if (spc.synonym && spc.accepted) {
             let accSynN = parseCanonicalFromScientific(spc, 'accepted', 'rank');
             console.log('SYNONYM', tax2Use, spc, 'ACCEPTED:', accSynN, vtNameIndex[accSynN]);
@@ -178,6 +198,7 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
         }
 
+        // Substitute SPECIES for SUBSPECIES if ti exists
         if ('SUBSPECIES'==spc.rank) {
             console.log('SUBSPECIES:', tax2Use, spc); 
             if (spc.species) {
@@ -232,7 +253,9 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             //taxonSource:'Source',
             vernacularName:'Common Name',
             image:'Image',
-            eventDate:'Last Observed'}, 
+            eventDate:'Last Observed'},
+        'colIds' : {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6},
+        'occCount': arrOccs.length,
         'array': objSpcs, 
         'query': occs.query
     };
@@ -384,13 +407,13 @@ async function delTableWait() {
     waitRow.remove();
 }
 
-async function addGBIFLink(geometry, taxonKeys) {
+async function addGBIFLink(geometry, taxonKeys, count) {
     let eleGBIF = document.getElementById("gbifLink");
     eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
     eleGBIF.target = "_blank";
-    eleGBIF.innerText = 'GBIF Occurrences';
+    eleGBIF.innerText = `GBIF Occurrences (${count})`;
 }
-  
+
 //put one row in the header for column names
 //async function addTableHead(headCols=['Taxon Key','Scientific Name','Taxon Rank','Common Name','Image','Last Observed']) {
 async function addTableHead(headCols={taxonKey:'Taxon Key',scientificName:'Scientific Name',taxonRank:'Taxon Rank',vernacularName:'Common Name',image:'Image',eventDate:'Last Observed'}) {
@@ -582,7 +605,7 @@ async function loadPage(block, geometry, taxonKeyA, year) {
         taxonKeys = taxonKeyA.map(key => key.join(','));
     }
     let spcs = await getBlockSpeciesListVT(block, dataset, geometry, taxonKeys, year);
-    await addGBIFLink(geometry, taxonKeys);
+    await addGBIFLink(geometry, taxonKeys, spcs.occCount);
     await addTaxaFromArr(spcs.array, spcs.cols);
     await addTableHead(spcs.cols);
     setTitleText(block, dataset, taxonKeys, Object.keys(spcs.array).length);
@@ -618,12 +641,21 @@ async function setDataTable() {
         console.log(`TABLE ROW ${i} COLUMN COUNT:`, eleTbl.rows[i].cells.length)
     }
 */
+
+    //let columnIds = {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6};
+    let columnIds = {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6};
+
+    let columnDefs = [
+        { orderSequence: ['desc', 'asc'], targets: [6] },
+        { orderSequence: ['asc', 'desc'], targets: [1,2] }
+    ]
+    //tableSortHeavyNew(tableId='species-table', orderColumn[], excludeColumnIds=[],  columnDefs=[], limit=10, responsive=false, paging=false, searching=false, info=false)
     if (tableSort) {
         tableSort.clear();
         tableSort.destroy();
-        tableSort = $('#speciesListTable').DataTable();    
+        tableSort = tableSortHeavyNew('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
     } else {
-        tableSort = $('#speciesListTable').DataTable();
+        tableSort = tableSortHeavyNew('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
     }
 }
 /* DEPRECATED in favor of direct call after awaiting all updates in pageLoad
