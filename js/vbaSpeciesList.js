@@ -641,7 +641,20 @@ function setInatInfo() {
         })
     }
 }
+function enableInput() {
+    eleAtlas.disabled = false;
+    eleCmpar.disabled = false;
+    eleMin.disabled = false;
+    eleMax.disabled = false;
+}
+function disableInput() {
+    eleAtlas.disabled = true;
+    eleCmpar.disabled = true;
+    eleMin.disabled = true;
+    eleMax.disabled = true;
+}
 async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) {
+    disableInput();
     let taxonKeys;
     eleTbl.innerHTML = "";
     addTableWait();
@@ -659,12 +672,13 @@ async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) 
     await addGBIFLink(geometry, taxonKeys, spcs.occCount);
     await addTaxaFromArr(spcs.objSpcs, spcs.cols);
     await addTableHead(spcs.cols);
-    setTitleText(block, dataset, taxonKeys, Object.keys(spcs.objSpcs).length);
     delTableWait();
+    setTitleText(block, dataset, taxonKeys, Object.keys(spcs.objSpcs).length);
     setEbutInfo();
     setInatInfo();
     setDataTable(); //MUST be called after table has finished updating.
     setPageUrl(block, geometry, taxonKeyA, years, compare);
+    enableInput();
     return Promise.resolve(1);
 }
 
