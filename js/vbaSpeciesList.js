@@ -179,9 +179,10 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
         let accFull = occ.acceptedScientificName;
         let accName = parseCanonicalFromScientific(occ, 'acceptedScientificName');
 
-        let arrDate = occ.eventDate.split('/');
-        let evtDate = arrDate[0];
-        if (occ.eventDate != evtDate) {console.log('EVENT DATE CONTAINS RANGE', occ.eventDate, evtDate)}
+        let arrDate = occ.eventDate ? occ.eventDate.split('/') : [];
+        let evtDate = arrDate.length ? arrDate[0] : 0;
+        if (!evtDate != evtDate) {console.log('EVENT DATE MISSING', occ.eventDate, sciName)}
+        if (occ.eventDate != evtDate) {console.log('EVENT DATE CONTAINS RANGE', occ.eventDate, sciName)}
 
         let tax2Use =  false; let taxFrom = false; let spc = false;
         if (vtNameIndex[sciName]) {
