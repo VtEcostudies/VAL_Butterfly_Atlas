@@ -63,10 +63,26 @@ if (year) {
     eleMin.setAttribute("data-value", min);
     eleMax.setAttribute("data-value", max);
     sliders.forEach(slider => {draw(slider, avg, min, max)});
-    eleAtlas.value=null; //unset atlas drop-down list
+    eleAtlas.value=yearsToDrop(year); //unset atlas drop-down list
+}
+if (compare) {
+    eleCmpar.value=yearsToDrop(compare);
+}
+function yearsToDrop(years) { //years is string, like '2002,2007'
+    let val = null;
+    switch(years) {
+        case `${yearMin},${yearMax}`: val='A'; break;
+        case `${yearMin},2001`: val='B'; break;
+        case `2002,2007`: val='1'; break;
+        case `2008,2022`: val='T'; break;
+        case `2023,2027`: val='2'; break;
+        case `2028,${yearMax}`: val='1'; break;
+        case `2050,2050`: val='N'; break;
+    }
+    return val;
 }
 
-function dropYear(val) {
+function dropToYears(val) {
     let min = yearMin;
     let max = yearMax;
 
@@ -106,7 +122,7 @@ function dropYear(val) {
 eleAtlas.addEventListener("change", ev => {
     console.log('Atlas drop-down', ev.target);
     let val = ev.target.value;
-    let yng = dropYear(val);
+    let yng = dropToYears(val);
     let min = yng.min;
     let max = yng.max;
     let avg = Math.floor((min + max)/2);
@@ -117,7 +133,7 @@ eleAtlas.addEventListener("change", ev => {
     //eleCmpar.value='N';
     //loadPage(block, geometry, taxonKeyA, `${min},${max}`);
     let cmp = eleCmpar.value;
-    let rng = dropYear(cmp);
+    let rng = dropToYears(cmp);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
 
 })
@@ -127,7 +143,7 @@ eleMin.addEventListener("change", ev => {
     let min = parseInt(ev.target.value);
     let max = parseInt(eleMax.value);
     let cmp = eleCmpar.value;
-    let rng = dropYear(cmp);
+    let rng = dropToYears(cmp);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
 
@@ -137,7 +153,7 @@ eleMax.addEventListener("change", ev => {
     let max = parseInt(ev.target.value);
     let min = parseInt(eleMin.value);
     let cmp = eleCmpar.value;
-    let rng = dropYear(cmp);
+    let rng = dropToYears(cmp);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
 
@@ -146,7 +162,7 @@ eleMax.addEventListener("change", ev => {
 eleCmpar.addEventListener("change", ev => {
     console.log('Compare drop-down:', ev.target);
     let val = ev.target.value;
-    let rng = dropYear(val);
+    let rng = dropToYears(val);
     let min = parseInt(eleMin.value);
     let max = parseInt(eleMax.value);
     loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
