@@ -119,6 +119,8 @@ function dropToYears(val) {
     return {'min':min, 'max':max};
 }
 
+var loadPromise = Promise.resolve(1); //dummy promise to start
+
 eleAtlas.addEventListener("change", ev => {
     console.log('Atlas drop-down', ev.target);
     let val = ev.target.value;
@@ -130,12 +132,11 @@ eleAtlas.addEventListener("change", ev => {
     eleMin.setAttribute("data-value", min);
     eleMax.setAttribute("data-value", max);
     sliders.forEach(slider => {draw(slider, avg);});
-    //eleCmpar.value='N';
-    //loadPage(block, geometry, taxonKeyA, `${min},${max}`);
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
-
+    loadPromise.then(() => {
+        loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+    })
 })
 
 eleMin.addEventListener("change", ev => {
@@ -144,9 +145,10 @@ eleMin.addEventListener("change", ev => {
     let max = parseInt(eleMax.value);
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
-
+    loadPromise.then(() => {
+        loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+    })
 })
 eleMax.addEventListener("change", ev => {
     console.log(ev.target.value, ev);
@@ -154,9 +156,10 @@ eleMax.addEventListener("change", ev => {
     let min = parseInt(eleMin.value);
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
-
+    loadPromise.then(() => {
+        loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+    })
 })
 
 eleCmpar.addEventListener("change", ev => {
@@ -165,8 +168,9 @@ eleCmpar.addEventListener("change", ev => {
     let rng = dropToYears(val);
     let min = parseInt(eleMin.value);
     let max = parseInt(eleMax.value);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
-    
+    loadPromise.then(() => {
+        loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+    })
 })
 
 async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
@@ -661,6 +665,7 @@ async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) 
     setInatInfo();
     setDataTable(); //MUST be called after table has finished updating.
     setPageUrl(block, geometry, taxonKeyA, years, compare);
+    return Promise.resolve(1);
 }
 
 //Set page URL to in-page settings without reloading the page
@@ -675,7 +680,7 @@ async function setPageUrl(block, geometry, taxonKeyA, years, compare) {
 }
 
 if (block && geometry) {
-    loadPage(block, geometry, taxonKeyA, year, compare);
+    loadPromise = loadPage(block, geometry, taxonKeyA, year, compare);
 } else {
     alert(`Must call with at least the query parameters 'block' and 'geometry'. Alternatively pass a dataset (like 'vba1') or one or more eg. 'taxonKey=1234'.`)
 }
