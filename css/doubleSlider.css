@@ -45,6 +45,10 @@ span.value.upper::before {content: "-";}
 .min-max-slider > input::-webkit-slider-runnable-track {cursor: pointer;}
 
 .drop-down {
-    margin-top: 20px;
+    /*margin-top: 20px;*/
     margin-bottom: 20px;
+}
+.drop-down-div {
+    display: inline !important;
+    margin-top: 20px;
 }

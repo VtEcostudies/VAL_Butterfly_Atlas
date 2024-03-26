@@ -22,6 +22,7 @@ const geometry = objUrlParams.get('geometry');
 const dataset = objUrlParams.get('dataset');
 const block = objUrlParams.get('block');
 const year = objUrlParams.get('year');
+const compare = objUrlParams.get('compare'); //same format as year - year-range to compare to primary year-range
 const taxonKeyA = objUrlParams.getAll('taxonKey');
 console.log('Query Param(s) taxonKey:', taxonKeyA);
 const yearMin = 1800;
@@ -43,9 +44,10 @@ const eleTbl = document.getElementById("speciesListTable");
 const eleTtl = document.getElementById("speciesListTitle");
 const eleInat =  document.getElementById("inatInfoLabel");
 const eleEbut =  document.getElementById("ebutInfoLabel");
-const eleAtlas = document.getElementById('atlas');
 const eleMin = document.getElementById('min');
 const eleMax = document.getElementById('max');
+const eleAtlas = document.getElementById('atlas');
+const eleCmpar = document.getElementById('compare');
 
 var sliders = document.querySelectorAll('.min-max-slider');
 
@@ -64,14 +66,13 @@ if (year) {
     eleAtlas.value=null; //unset atlas drop-down list
 }
 
-eleAtlas.addEventListener("change", ev => {
-    let val = ev.target.value;
-    console.log(ev.target);
-    let min = yearMin;
-    let max = yearMax;
-    let avg = Math.floor((min + max)/2);
+function dropYear(val) {
 
     switch(val) {
+        case "N": //None
+            min = 2030;
+            max = 2030;
+            break;
         case "A": //All years
             min = yearMin;
             max = yearMax;
@@ -92,27 +93,40 @@ eleAtlas.addEventListener("change", ev => {
             min = 2023;
             max = 2027;
             break;
-        case "X": //VBA2 Target
-            min = 2002;
-            max = 2027;
-            break;
         case "R": //After VBA2
             min = 2028;
             max = yearMax;
             break;
     }
+    return {'min':min, 'max':max};
+}
+
+eleAtlas.addEventListener("change", ev => {
+    console.log('Atlas drop-down', ev.target);
+    let val = ev.target.value;
+    let yng = dropYear(val);
+    let min = yng.min;
+    let max = yng.max;
+    let avg = Math.floor((min + max)/2);
     avg = Math.floor((min + max)/2);
     eleMin.setAttribute("data-value", min);
     eleMax.setAttribute("data-value", max);
     sliders.forEach(slider => {draw(slider, avg);});
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`);
+    //eleCmpar.value='N';
+    //loadPage(block, geometry, taxonKeyA, `${min},${max}`);
+    let cmp = eleCmpar.value;
+    let rng = dropYear(cmp);
+    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+
 })
 
 eleMin.addEventListener("change", ev => {
     console.log(ev.target.value, ev);
     let min = parseInt(ev.target.value);
     let max = parseInt(eleMax.value);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`);
+    let cmp = eleCmpar.value;
+    let rng = dropYear(cmp);
+    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
 
 })
@@ -120,9 +134,21 @@ eleMax.addEventListener("change", ev => {
     console.log(ev.target.value, ev);
     let max = parseInt(ev.target.value);
     let min = parseInt(eleMin.value);
-    loadPage(block, geometry, taxonKeyA, `${min},${max}`);
+    let cmp = eleCmpar.value;
+    let rng = dropYear(cmp);
+    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     eleAtlas.value=null; //unset atlas drop-down list
 
+})
+
+eleCmpar.addEventListener("change", ev => {
+    console.log('Compare drop-down:', ev.target);
+    let val = ev.target.value;
+    let rng = dropYear(val);
+    let min = parseInt(eleMin.value);
+    let max = parseInt(eleMax.value);
+    loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
+    
 })
 
 async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
@@ -139,32 +165,23 @@ async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false)
     } while (!page.endOfRecords && off<max);
 }  
 
-async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=false, tKeys=false, years=false) {
-
-    //let occs = await getOccsByFilters(0,300,dataset,gWkt,false,tKeys,years);
-    let occs = await getBlockOccs(dataset,gWkt,tKeys,years);
-    let hedSpcs = 'Species List for ' + block + (dataset ? ` and dataset ${dataset}` : '')
+async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, years=false) {
+    let occs = await getBlockOccs(dataset, gWkt, tKeys, years);
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
-    console.log('vbaSpeciesList=>getBlockSpeciesListVT: block:', block, 'occ count:', arrOccs.length, 'results:', arrOccs);
+    //console.log('vbaSpeciesList=>getBlockSpeciesListVT: block:', block, 'occ count:', arrOccs.length, 'results:', arrOccs);
     for (var i=0; i<arrOccs.length; i++) {
         let occ = arrOccs[i];
 
         let sciFull = occ.scientificName;
         let sciName = parseCanonicalFromScientific(occ, 'scientificName');
         let canName = sciName;
-        let sciKey = occ.key;
-
         let accFull = occ.acceptedScientificName;
         let accName = parseCanonicalFromScientific(occ, 'acceptedScientificName');
-        let accKey = occ.acceptedTaxonKey;
-        let accRank = occ.taxonRank.toUpperCase(); //occ RANK is accepted RANK, not original RANK
-        let accSpcs = occ.species; //The accepted name's SPECIES
-        let accGnus = occ.genus;
 
-        if (sciName != accName) { //To-Do: does occ API return accName when GBIF backbone agrees with the taxon ID?
-            //console.log('getBlockSpeciesListVT found occurrence having SYNONYM', sciName, accName, occ);
-        }
+        let arrDate = occ.eventDate.split('/');
+        let evtDate = arrDate[0];
+        if (occ.eventDate != evtDate) {console.log('EVENT DATE CONTAINS RANGE', occ.eventDate, evtDate)}
 
         let tax2Use =  false; let taxFrom = false; let spc = false;
         if (vtNameIndex[sciName]) {
@@ -172,13 +189,13 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             tax2Use = sciName;
             taxFrom = 'VT Butterflies <- GBIF Original';
             spc = vtNameIndex[sciName];
-            spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
         } else if (vtNameIndex[accName]) {
             //console.log('FOUND BACKBONE', accName, 'in VT Index', vtNameIndex[accName]);
             tax2Use = accName;
             taxFrom = 'VT Butterflies <- GBIF Accepted';
             spc = vtNameIndex[accName];
-            spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
         } else {
             //console.log('NEITHER FOUND - SOURCE', sciName, accName, 'using Occ:', occ);
             tax2Use = accName;
@@ -191,11 +208,11 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
         // Substitute accepted name for synonym if it exists
         if (spc.synonym && spc.accepted) {
             let accSynN = parseCanonicalFromScientific(spc, 'accepted', 'rank');
-            console.log('SYNONYM', tax2Use, spc, 'ACCEPTED:', accSynN, vtNameIndex[accSynN]);
+            console.log('SYNONYM IN VT INDEX', tax2Use, spc, 'ACCEPTED:', accSynN, vtNameIndex[accSynN]);
             tax2Use = accSynN;
             spc = vtNameIndex[accSynN]; //we assume this is always valid
             taxFrom = 'VT Butterflies <- GBIF Synonym';
-            spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
         }
 
         // Substitute SPECIES for SUBSPECIES if ti exists
@@ -207,7 +224,7 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
                 spc = vtNameIndex[tax2Use];
                 taxFrom += ' <- Subsp.';
                 spc.subspKey = subspKey;
-                spc.eventDate = occ.eventDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+                spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
             } else {
                 console.log('SUBSPECIES INCOMPLETE - NO parent SPECIES defined. Name:', tax2Use, 'species:', spc.species, 'parent:', spc.parent);
             }
@@ -242,9 +259,8 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             console.log('DELETE GENUS', key, objGnus[key], objSpcs[key])
             delete objSpcs[key];
         }
-    }   
+    }
     return {
-        'head': hedSpcs, 
         'cols': {
             taxonKey:'Taxon Key',
             scientificName:'Name',
@@ -256,9 +272,23 @@ async function getBlockSpeciesListVT(block='block_name', dataset=false, gWkt=fal
             eventDate:'Last Observed'},
         'colIds' : {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6},
         'occCount': arrOccs.length,
-        'array': objSpcs, 
+        'objSpcs': objSpcs, 
         'query': occs.query
     };
+}
+
+async function compareBlockSpeciesLists(dataset=false, gWkt=false, tKeys=false, years=false, compare=false) {
+    let tres = await getBlockSpeciesListVT(dataset, gWkt, tKeys, years);
+    let cres = await getBlockSpeciesListVT(dataset, gWkt, tKeys, compare);
+    let trgt = tres.objSpcs; 
+    for (const key in cres.objSpcs) { //remove entries from target that are also found in compare
+        if (trgt[key]) {
+            console.log('COMPARE DELETE', key); 
+            delete trgt[key];
+        }
+    }
+    tres.objSpcs = trgt;
+    return tres;
 }
 
 //Object keys from a species list are different from keys from an occurrence search...
@@ -389,7 +419,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
             vernacularName:'Common Name',
             image:'Image',
             eventDate:'Last Observed'}, 
-        'array': objSpcs, 
+        'objSpcs': objSpcs, 
         'query': occs.query
     };
 }
@@ -415,30 +445,23 @@ async function addGBIFLink(geometry, taxonKeys, count) {
 }
 
 //put one row in the header for column names
-//async function addTableHead(headCols=['Taxon Key','Scientific Name','Taxon Rank','Common Name','Image','Last Observed']) {
 async function addTableHead(headCols={taxonKey:'Taxon Key',scientificName:'Scientific Name',taxonRank:'Taxon Rank',vernacularName:'Common Name',image:'Image',eventDate:'Last Observed'}) {
     console.log('HEADER COLUMNS', headCols);
     let objHed = eleTbl.createTHead();
     let hedRow = objHed.insertRow(0);
     let colObj;
-/*
-    for (var i=0; i<headCols.length; i++) {
-        colObj = hedRow.insertCell(i);
-        colObj.innerText = headCols[i];
-    }
-*/
     var i=0;
-    for (const key in headCols) {
+    for (const key in headCols) { //objList of header items having column key and header display name
         colObj = hedRow.insertCell(i++);
         colObj.innerText = headCols[key];
     }
 }
   
 //Create table row for each array element, then fill row of cells
-async function addTaxaFromArr(objArr, hedObj) {
-    //console.log('addTaxaFromArr', objArr);
+async function addTaxaFromArr(objSpcs, hedObj) {
+    //console.log('addTaxaFromArr', objSpcs);
     let rowIdx=0;
-    for (const [spcKey, objSpc] of Object.entries(objArr)) {
+    for (const [spcKey, objSpc] of Object.entries(objSpcs)) {
         //console.log(objSpc, rowIdx)
         let objRow = await eleTbl.insertRow(rowIdx);
         await fillRow(spcKey, objSpc, objRow, rowIdx++, hedObj);
@@ -595,7 +618,7 @@ function setInatInfo() {
         })
     }
 }
-async function loadPage(block, geometry, taxonKeyA, year) {
+async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) {
     let taxonKeys;
     eleTbl.innerHTML = "";
     addTableWait();
@@ -604,45 +627,42 @@ async function loadPage(block, geometry, taxonKeyA, year) {
     if (taxonKeyA.length) {
         taxonKeys = taxonKeyA.map(key => key.join(','));
     }
-    let spcs = await getBlockSpeciesListVT(block, dataset, geometry, taxonKeys, year);
+    let spcs = {}
+    if (compare) {
+        spcs = await compareBlockSpeciesLists(dataset, geometry, taxonKeys, years, compare);
+    } else {
+        spcs = await getBlockSpeciesListVT(dataset, geometry, taxonKeys, years);
+    }
     await addGBIFLink(geometry, taxonKeys, spcs.occCount);
-    await addTaxaFromArr(spcs.array, spcs.cols);
+    await addTaxaFromArr(spcs.objSpcs, spcs.cols);
     await addTableHead(spcs.cols);
-    setTitleText(block, dataset, taxonKeys, Object.keys(spcs.array).length);
+    setTitleText(block, dataset, taxonKeys, Object.keys(spcs.objSpcs).length);
     delTableWait();
     setEbutInfo();
     setInatInfo();
     setDataTable(); //MUST be called after table has finished updating.
-    setPageUrl(block, geometry, taxonKeyA, year);
+    setPageUrl(block, geometry, taxonKeyA, years, compare);
 }
 
 //Set page URL to in-page settings without reloading the page
-async function setPageUrl(block, geometry, taxonKeyA, year) {
-    //console.log('BEFORE', decodeURI(objUrlParams.toString()));
-    if (year) {objUrlParams.set('year', `${year}`);}
+async function setPageUrl(block, geometry, taxonKeyA, years, compare) {
+    if (years) {objUrlParams.set('year', `${years}`);}
+    if (compare) {objUrlParams.set('compare', `${compare}`);}
     const thisUrl = new URL(document.URL);
     const homeUrl = `${thisUrl.protocol}//${thisUrl.host}`;
-    let stateObj = {block:block, geometry:geometry, taxonKeyA:taxonKeyA, year:year};
+    let stateObj = {block:block, geometry:geometry, taxonKeyA:taxonKeyA, year:years, compare:compare};
     let stateUrl = `${homeUrl}${thisUrl.pathname}?${decodeURI(objUrlParams.toString())}`;
-    //console.log('AFTER', stateUrl);
     history.replaceState(stateObj, "", stateUrl);
 }
 
 if (block && geometry) {
-    loadPage(block, geometry, taxonKeyA, year);
+    loadPage(block, geometry, taxonKeyA, year, compare);
 } else {
     alert(`Must call with at least the query parameters 'block' and 'geometry'. Alternatively pass a dataset (like 'vba1') or one or more eg. 'taxonKey=1234'.`)
 }
 
 let tableSort = false;
 async function setDataTable() {
-/*
-    for (var i=0; i<eleTbl.rows.length; i++) {
-        console.log(`TABLE ROW ${i} COLUMN COUNT:`, eleTbl.rows[i].cells.length)
-    }
-*/
-
-    //let columnIds = {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6};
     let columnIds = {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6};
 
     let columnDefs = [

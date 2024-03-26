@@ -41,20 +41,31 @@
             <a id="gbifLink" class="speciesListLabel" href=""></a>
         </div>
         <div class="row">
-            <div class="col-lg-4 offset-lg-2 col-md-4 offset-md-2 col-sm-6 offset-sm-3">
+            <div class="col-lg-4 offset-lg-2 col-md-4 offset-md-2 col-sm-6">
                 <div class="min-max-slider" data-legendnum="2">
                     <input id="min" class="min" name="min" type="range" step="1" min="1800" max="2030" />
                     <input id="max" class="max" name="max" type="range" step="1" min="1800" max="2030" />
                 </div>
             </div>
-            <div class="float-start col-lg-1 col-md-1 col-sm-4 offset-sm-2">
+            <div class="drop-down-div float-start col-lg-2 col-md-2 col-sm-4">
+                <label>Compare:</label>
                 <select id="atlas" class="drop-down">
                     <option value="A">All</option>
                     <option value="B">Before VBA1</option>
-                    <option value="1">VBA1</option>
-                    <option value="T">2008 - 2022</option>
-                    <option value="2">VBA2</option>
-                    <option value="X">VBA2 Target</option>
+                    <option value="1">1st Atlas</option>
+                    <option value="T">2008-2022</option>
+                    <option value="2">2nd Atlas</option>
+                    <option value="R">After VBA2</option>
+                </select>                
+            </div>
+            <div class="drop-down-div float-start col-lg-2 col-md-2 col-sm-4">
+                <label>To:</label>
+                <select id="compare" class="drop-down">
+                    <option value="N">None</option>
+                    <option value="B">Before VBA1</option>
+                    <option value="1">1st Atlas</option>
+                    <option value="T">2008-2022</option>
+                    <option value="2">2nd Atlas</option>
                     <option value="R">After VBA2</option>
                 </select>                
             </div>
