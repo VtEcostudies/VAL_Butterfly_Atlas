@@ -67,11 +67,13 @@ if (year) {
 }
 
 function dropYear(val) {
+    let min = yearMin;
+    let max = yearMax;
 
     switch(val) {
         case "N": //None
-            min = 2030;
-            max = 2030;
+            min = 2050;
+            max = 2050;
             break;
         case "A": //All years
             min = yearMin;
