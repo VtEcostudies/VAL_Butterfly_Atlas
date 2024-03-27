@@ -1177,7 +1177,7 @@ async function fillBlockDropDown() {
   let sel = document.getElementById('blocks');
   if (sel) {
     console.log(`fillBlockDropDown=>select`, sel, 'geoGroup:', geoGroup);
-    geoGroup.eachLayer(layer => {
+    geoGroup.eachLayer(async layer => {
       console.log(`fillBlockDropDown found GeoJson layer:`, layer.options.name);
       if ('Survey Blocks'==layer.options.name) {
         blockLayer = layer; //set global for use later
@@ -1185,7 +1185,13 @@ async function fillBlockDropDown() {
         layer.eachLayer(blok => {
           blox.push(blok.feature.properties.BLOCKNAME);
         })
-        blox.sort((a, b) => {return a > b;});
+        /*
+        let blocks = layer._layers;
+        for (const key in blocks) {
+          blox.push(blocks[key].feature.properties.BLOCKNAME);
+        }
+        */
+        blox.sort((a, b) => {return a > b ? 1 : -1;}); //Chrome can't handle simple a > b. Must return [1, 0, -1]
         blox.forEach(blockName => {
           let opt = document.createElement('option');
           opt.innerHTML = blockName;
