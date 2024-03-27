@@ -159,6 +159,10 @@ html, body, #mapid, .row-fluid{
   border-style: outset;
 }
 
+.map-drop-down option {
+  text-align: left;
+}
+
 .icon-button {
   text-align: left;
 }
