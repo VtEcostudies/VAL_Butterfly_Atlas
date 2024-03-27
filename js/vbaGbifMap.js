@@ -945,8 +945,8 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
+      layerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
     })
-  layerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
 }
 
 async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
@@ -1183,7 +1183,17 @@ async function fillBlockDropDown() {
         blockLayer = layer; //set global for use later
         let blox = [];
         layer.eachLayer(blok => {
-          blox.push(blok.feature.properties.BLOCKNAME);
+          let link = blok.feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+          link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
+          let obj = {
+            name: blok.feature.properties.BLOCKNAME,
+            type: blok.feature.properties.BLOCK_TYPE,
+            link: link,
+            adopted: sheetSignUps[link] ? true : false
+          };
+          console.log(blok, link, sheetSignUps[link])
+          blox.push(obj);
+          //blox.push(blok.feature.properties.BLOCKNAME);
         })
         /*
         let blocks = layer._layers;
@@ -1191,11 +1201,21 @@ async function fillBlockDropDown() {
           blox.push(blocks[key].feature.properties.BLOCKNAME);
         }
         */
-        blox.sort((a, b) => {return a > b ? 1 : -1;}); //Chrome can't handle simple a > b. Must return [1, 0, -1]
-        blox.forEach(blockName => {
+        blox.sort((a, b) => {return a.name > b.name ? 1 : -1;}); //Chrome can't handle simple a > b. Must return [1, 0, -1]
+        blox.forEach(blok => {
           let opt = document.createElement('option');
-          opt.innerHTML = blockName;
-          opt.value = blockName;
+          opt.innerHTML = blok.name;
+          opt.value = blok.name;
+          if ('PRIORITY' == blok.type) {
+            opt.style.fontWeight = 'bold'; opt.style.textDecorationLine = 'underline';
+            if (blok.adopted) {
+              opt.style.backgroundColor = 'mediumseagreen'; 
+            } else {
+              opt.style.backgroundColor = 'red'; 
+            }
+          } else if (blok.adopted) {
+            opt.style.backgroundColor = 'yellow';
+          }
           sel.appendChild(opt);
         })
       }
