@@ -46,4 +46,23 @@
         background-color: lightgray !important;
     }
 }
+
+.speciesListTitle {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+.speciesListLabel {
+    display: inline;
+    margin-left: 10px;
+  }
+  
+/* Both of these work to apply underline to just table header cells: */
+thead > tr > td {
+    text-decoration: underline;
+  }
+thead tr td {
+    text-decoration: underline;
+  }
   

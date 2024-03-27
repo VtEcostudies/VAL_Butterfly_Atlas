@@ -33,6 +33,7 @@ var townLayer = false;
 var bioPhysicalLayer = false;
 var geoGroup = false; //geoJson boundary group for ZIndex management
 var occGroup = false; //geoJson occurrence group
+var blockLayer = false;
 var baseMapDefault = null;
 var abortData = false;
 var eleWait = document.getElementById("wait-overlay");
@@ -233,6 +234,7 @@ async function zoomVT() {
 
 /*
   Add boundaries to map with their own control.
+  layerPath is optional additional layer, eg. surveyBlocks
 */
 async function addBoundaries(layerPath=false, layerName=false, layerId=9) {
 
@@ -940,6 +942,7 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
+      fillBlockDropDown(); //fill drop-down select list of block names
     })
 }
 
@@ -1165,4 +1168,45 @@ if (document.getElementById("getSign")) {
     putSignups(sheetSignUps); //mark survey blocks as taken
     listSignups(sheetSignUps); //popup list of signups
   });
+}
+async function fillBlockDropDown() {
+  console.log(`fillBlockDropDown`);
+  let sel = document.getElementById('blocks');
+  if (sel) {
+    console.log(`fillBlockDropDown=>select`, sel, 'geoGroup:', geoGroup);
+    geoGroup.eachLayer(layer => {
+      console.log(`fillBlockDropDown found GeoJson layer:`, layer.options.name);
+      if ('Survey Blocks'==layer.options.name) {
+        blockLayer = layer; //set global for use later
+        let blox = [];
+        layer.eachLayer(blok => {
+          blox.push(blok.feature.properties.BLOCKNAME);
+        })
+        blox.sort((a, b) => {return a > b;});
+        blox.forEach(blockName => {
+          let opt = document.createElement('option');
+          opt.innerHTML = blockName;
+          opt.value = blockName;
+          sel.appendChild(opt);
+        })
+      }
+    })
+    sel.addEventListener('change', (ev) => {
+      console.log(`blockDropDown=>eventListener('change')=>value:`, ev.target.value);
+      zoomToBlock(ev.target.value);
+    });
+  } else {
+    console.log(`fillBlockDropDown => NOT FOUND: drop-down select element id 'blocks'`);
+  }
+}
+function zoomToBlock(blockName) {
+  if (blockLayer) {
+    blockLayer.eachLayer(layer => {
+      if (blockName == layer.feature.properties.BLOCKNAME) {
+        valMap.fitBounds(layer.getBounds()); //applies to all layers
+      }
+    })
+  } else {
+    console.log('blockLayer not defined');
+  }
 }
