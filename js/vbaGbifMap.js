@@ -33,6 +33,7 @@ var townLayer = false;
 var bioPhysicalLayer = false;
 var geoGroup = false; //geoJson boundary group for ZIndex management
 var occGroup = false; //geoJson occurrence group
+var layerPromise = Promise.resolve();
 var blockLayer = false;
 var baseMapDefault = null;
 var abortData = false;
@@ -247,16 +248,18 @@ async function addBoundaries(layerPath=false, layerName=false, layerId=9) {
     boundaryLayerControl.setPosition("bottomright");
 
     geoGroup = new L.FeatureGroup();
+
+    if (layerPath) {
+      layerPromise = addGeoJsonLayer(layerPath, layerName, layerId, boundaryLayerControl, geoGroup, true);
+    }
     
     addGeoJsonLayer('geojson/Polygon_VT_State_Boundary.geojson', "State", 0, boundaryLayerControl, geoGroup);
     addGeoJsonLayer('geojson/Polygon_VT_County_Boundaries.geojson', "Counties", 1, boundaryLayerControl, geoGroup, !layerPath);
     addGeoJsonLayer('geojson/Polygon_VT_Town_Boundaries.geojson', "Towns", 2, boundaryLayerControl, geoGroup);
     addGeoJsonLayer('geojson/Polygon_VT_Biophysical_Regions.geojson', "Biophysical Regions", 3, boundaryLayerControl, geoGroup);
 
-    if (layerPath) {
-      addGeoJsonLayer(layerPath, layerName, layerId, boundaryLayerControl, geoGroup, true);
-    }
-  }
+    return layerPromise;
+}
 
 async function addGeoJsonLayer(file="test.geojson", layerName="Test", layerId = 0, layerControl=null, layerGroup=null, addToMap=false, featrFunc=onGeoBoundaryFeature, styleFunc=onGeoBoundaryStyle) {
   try {
@@ -942,8 +945,8 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
-      fillBlockDropDown(); //fill drop-down select list of block names
     })
+  layerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
 }
 
 async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
