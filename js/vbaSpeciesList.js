@@ -462,7 +462,11 @@ async function delTableWait() {
 
 async function addGBIFLink(geometry, taxonKeys, count) {
     let eleGBIF = document.getElementById("gbifLink");
-    eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `https://val.vtecostudies.org/gbif-explorer/?view=MAP&${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `https://vtatlasoflife.org/VAL_Data_Explorers/_occurrences.html?view=MAP&${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `https://vtatlasoflife.org/VAL_Data_Explorers/_occurrences.html?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
+    eleGBIF.href = `https://val.vtecostudies.org/gbif-explorer/?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
     eleGBIF.target = "_blank";
     eleGBIF.innerText = `GBIF Occurrences (${count})`;
 }
