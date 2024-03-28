@@ -33,7 +33,8 @@ var townLayer = false;
 var bioPhysicalLayer = false;
 var geoGroup = false; //geoJson boundary group for ZIndex management
 var occGroup = false; //geoJson occurrence group
-var layerPromise = Promise.resolve();
+var customLayerPromise = Promise.resolve();
+var townLayerPromise = Promise.resolve();
 var blockLayer = false;
 var townLayer = false;
 var baseMapDefault = null;
@@ -251,15 +252,15 @@ async function addBoundaries(layerPath=false, layerName=false, layerId=9) {
     geoGroup = new L.FeatureGroup();
 
     if (layerPath) {
-      layerPromise = addGeoJsonLayer(layerPath, layerName, layerId, boundaryLayerControl, geoGroup, true);
+      customLayerPromise = addGeoJsonLayer(layerPath, layerName, layerId, boundaryLayerControl, geoGroup, true);
     }
     
     addGeoJsonLayer('geojson/Polygon_VT_State_Boundary.geojson', "State", 0, boundaryLayerControl, geoGroup);
     addGeoJsonLayer('geojson/Polygon_VT_County_Boundaries.geojson', "Counties", 1, boundaryLayerControl, geoGroup, !layerPath);
-    addGeoJsonLayer('geojson/Polygon_VT_Town_Boundaries.geojson', "Towns", 2, boundaryLayerControl, geoGroup);
+    townLayerPromise = addGeoJsonLayer('geojson/Polygon_VT_Town_Boundaries.geojson', "Towns", 2, boundaryLayerControl, geoGroup);
     addGeoJsonLayer('geojson/Polygon_VT_Biophysical_Regions.geojson', "Biophysical Regions", 3, boundaryLayerControl, geoGroup);
 
-    return layerPromise;
+    return {customLayerPromise: customLayerPromise, townLayerPromise: townLayerPromise};
 }
 
 async function addGeoJsonLayer(file="test.geojson", layerName="Test", layerId = 0, layerControl=null, layerGroup=null, addToMap=false, featrFunc=onGeoBoundaryFeature, styleFunc=onGeoBoundaryStyle) {
@@ -957,7 +958,8 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
-      layerPromise.then(() => {fillBlockDropDown();fillTownDropDown();}) //fill drop-down select list of block names
+      customLayerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
+      townLayerPromise.then(() => {fillTownDropDown();}) //fill drop-down select list of town names
     })
 }
 
