@@ -716,10 +716,10 @@ import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
   })
 
 async function startUp(fCfg) {
-    homeUrl = fCfg.dataConfig.homeUrl;
-    exploreUrl = fCfg.dataConfig.exploreUrl;
-    resultsUrl = fCfg.dataConfig.resultsUrl;
-    profileUrl = fCfg.dataConfig.profileUrl;
+    homeUrl = `https://val.vtecostudies.org`;//fCfg.dataConfig.homeUrl;
+    exploreUrl = `https://val.vtecostudies.org/gbif-explorer`;//fCfg.dataConfig.exploreUrl;
+    resultsUrl = `https://val.vtecostudies.org/gbif-species-explorer`;//fCfg.dataConfig.resultsUrl;
+    profileUrl = `https://val.vtecostudies.org/species-profile`;//fCfg.dataConfig.profileUrl;
   
     if (block && geometry) {
         loadPromise = loadPage(block, geometry, taxonKeyA, year, compare);
