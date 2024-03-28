@@ -4,17 +4,21 @@ import { parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtil
 import { getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
 import { checklistVtButterflies, checklistVernacularNames, getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
 import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDatasetUrl } from "../VAL_Web_Utilities/js/fetchGbifDataset.js";
-import { init,draw,update } from './doubleSlider.js';
+import { init, draw, update } from './doubleSlider.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
-import { tableSortHeavyNew } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
+import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
 
+var siteName = 'vtButterflies';
+var homeUrl;
+var exploreUrl;
+var resultsUrl;
+var profileUrl;
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
 
-let vtNameIndex = {}; let vtTkeyIndex = {};
+let vtNameIndex = {};
 for (const spc of checklistVtButterflies.results) {
     vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
-    vtTkeyIndex[spc.key] = spc; //VT Butterflies Species-list indexed by species-list key, NOT nubKey
 }
 
 const objUrlParams = new URLSearchParams(window.location.search);
@@ -469,10 +473,10 @@ async function delTableWait() {
 async function addGBIFLink(geometry, taxonKeys, count) {
     let eleGBIF = document.getElementById("gbifLink");
     //eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `https://val.vtecostudies.org/gbif-explorer/?view=MAP&${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `https://vtatlasoflife.org/VAL_Data_Explorers/_occurrences.html?view=MAP&${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `https://vtatlasoflife.org/VAL_Data_Explorers/_occurrences.html?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
-    eleGBIF.href = `https://val.vtecostudies.org/gbif-explorer/?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
+    //eleGBIF.href = `${exploreUrl}?view=MAP&${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `${exploreUrl}?view=MAP&${taxonKeys}&geometry=${geometry}`;
+    //eleGBIF.href = `${exploreUrl}?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
+    eleGBIF.href = `${exploreUrl}?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
     eleGBIF.target = "_blank";
     eleGBIF.innerText = `GBIF Occurrences (${count})`;
 }
@@ -563,13 +567,13 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
             case 'scientificName':
                 colObj = objRow.insertCell(colIdx++);
                 //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
-                //colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?siteName=vtButterflies&taxonName=${val}">${val}</a>`;
-                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?siteName=vtButterflies&taxonKey=${rawKey}&taxonName=${val}">${val}</a>`;
+                //colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonName=${val}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonKey=${rawKey}&taxonName=${val}">${val}</a>`;
                 break;
             case 'acceptedName':
                 colObj = objRow.insertCell(colIdx++);
                 if (val) {
-                    colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="https://val.vtecostudies.org/species-profile?siteName=vtButterflies&taxonKey=${accKey}&taxonName=${val}">${val}</a>`;
+                    colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonKey=${accKey}&taxonName=${val}">${val}</a>`;
                 } else {colObj.innerHTML = '';}
                 break;
             case 'eventDate':
@@ -578,7 +582,7 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                 let date = val ? val.split('/')[0] : false;
                 date = date ? moment(date).format('YYYY-MM-DD') : 'N/A';
                 //colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${objSpc.gbifId} Date: ${val}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
-                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="https://val.vtecostudies.org/gbif-explorer/?view=MAP&taxonKey=${nubKey}&geometry=${geometry}&gbif-year=${years}">${date}</a>`;
+                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="${exploreUrl}?view=MAP&gbif-year=${years}&taxonKey=${nubKey}&geometry=${geometry}">${date}</a>`;
                 break;
             case 'vernacularName': //don't use GBIF occurrence value for vernacularName, use VAL checklist or VAL google sheet
                 colObj = objRow.insertCell(colIdx++);
@@ -704,10 +708,24 @@ async function setPageUrl(block, geometry, taxonKeyA, years, compare) {
     history.replaceState(stateObj, "", stateUrl);
 }
 
-if (block && geometry) {
-    loadPromise = loadPage(block, geometry, taxonKeyA, year, compare);
-} else {
-    alert(`Must call with at least the query parameters 'block' and 'geometry'. Alternatively pass a dataset (like 'vba1') or one or more eg. 'taxonKey=1234'.`)
+//get atlas configuration and startup
+import(`../VAL_Web_Utilities/js/gbifDataConfig.js?siteName=${siteName}`)
+  .then(fCfg => {
+    console.log('siteName:', siteName, 'dataConfig:', fCfg.dataConfig);
+    startUp(fCfg);
+  })
+
+async function startUp(fCfg) {
+    homeUrl = fCfg.dataConfig.homeUrl;
+    exploreUrl = fCfg.dataConfig.exploreUrl;
+    resultsUrl = fCfg.dataConfig.resultsUrl;
+    profileUrl = fCfg.dataConfig.profileUrl;
+  
+    if (block && geometry) {
+        loadPromise = loadPage(block, geometry, taxonKeyA, year, compare);
+    } else {
+        alert(`Must call with at least the query parameters 'block' and 'geometry'. Alternatively pass a dataset (like 'vba1') or one or more eg. 'taxonKey=1234'.`)
+    }
 }
 
 let tableSort = false;
@@ -722,9 +740,9 @@ async function setDataTable() {
     if (tableSort) {
         tableSort.clear();
         tableSort.destroy();
-        tableSort = tableSortHeavyNew('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
+        tableSort = tableSortHeavy('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
     } else {
-        tableSort = tableSortHeavyNew('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
+        tableSort = tableSortHeavy('speciesListTable', [6, 'desc'], [5], columnDefs, 100, true, true, true, true);
     }
 }
 /* DEPRECATED in favor of direct call after awaiting all updates in pageLoad
