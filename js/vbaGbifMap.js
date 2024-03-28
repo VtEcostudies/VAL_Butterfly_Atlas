@@ -1207,14 +1207,14 @@ async function fillBlockDropDown() {
           opt.innerHTML = blok.name;
           opt.value = blok.name;
           if ('PRIORITY' == blok.type) {
-            opt.style.fontWeight = 'bold'; opt.style.textDecorationLine = 'underline';
+            //opt.style.fontWeight = 'bold'; opt.style.textDecorationLine = 'underline';
             if (blok.adopted) {
-              opt.style.backgroundColor = 'mediumseagreen'; 
+              opt.style.backgroundColor = '#33FF66'; //'lightgreen'; //'mediumseagreen'; 
             } else {
-              opt.style.backgroundColor = 'red'; 
+              opt.style.backgroundColor = 'salmon'; //'lightcoral'; 
             }
           } else if (blok.adopted) {
-            opt.style.backgroundColor = 'yellow';
+            opt.style.backgroundColor = '#FFFF66'; //'yellow';
           }
           sel.appendChild(opt);
         })
