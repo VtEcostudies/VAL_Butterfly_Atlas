@@ -35,6 +35,7 @@ var geoGroup = false; //geoJson boundary group for ZIndex management
 var occGroup = false; //geoJson occurrence group
 var layerPromise = Promise.resolve();
 var blockLayer = false;
+var townLayer = false;
 var baseMapDefault = null;
 var abortData = false;
 var eleWait = document.getElementById("wait-overlay");
@@ -288,7 +289,7 @@ function onGeoBoundaryFeature(feature, layer) {
         switch(key.toLowerCase()) {
           case 'blockname':
             tips = `${obj[key]}<br>`;
-            let blok = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+            let blok = blockLinkFromBlockName(feature.properties.BLOCKNAME);
             if (sheetSignUps[blok]) {
               for (const name of sheetSignUps[blok])
               tips += `${name.first} ${name.last} on ${name.date.split(' ')[0]}<br>`;
@@ -313,7 +314,7 @@ function onGeoBoundaryFeature(feature, layer) {
         var pops;
         var name = feature.properties.BLOCKNAME;
 
-        var link = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+        var link = blockLinkFromBlockName(feature.properties.BLOCKNAME);
         link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
         console.log('Survey Block Layer click | block link name:', link);
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
@@ -365,7 +366,7 @@ function onGeoBoundaryStyle(feature) {
         break;
     }
     //Check the signup array to see if block was chosen
-    let blockName = feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+    let blockName = blockLinkFromBlockName(feature.properties.BLOCKNAME);
     let blockType = feature.properties.BLOCK_TYPE;
     if (sheetSignUps[blockName]) {
       if ('PRIORITY' == blockType.toUpperCase()) {
@@ -890,7 +891,7 @@ function putSignups(sign) {
     if ('Survey Blocks'==layer.options.name) {
       prioritySignupCount = 0; nonPriorSignupCount = 0; priorityBlockCount = 0; priorityBlockArray = [];
       layer.eachLayer(subLay => {
-        let blockName = subLay.feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
+        let blockName = blockLinkFromBlockName(subLay.feature.properties.BLOCKNAME);
         let blockType = subLay.feature.properties.BLOCK_TYPE;
         if ('PRIORITY' == blockType) {
           priorityBlockArray[blockName] = 1;
@@ -914,15 +915,26 @@ function putSignups(sign) {
 
 function listSignups(sign) {
   let sCnt = Object.keys(sign).length;
-  let html = `<u><b>${sCnt} TOTAL block sign-ups</b></u><br>`
-  html += `<u style="color:${signupPriorityStyle.fillColor};"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
-  html += `<u style="color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor}"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
+  let div = document.createElement("div");
+  div.innerHTML = `<u><b>${sCnt} TOTAL block sign-ups</b></u><br>`
+  div.innerHTML += `<u style="color:${signupPriorityStyle.fillColor};"><b>${prioritySignupCount}/${priorityBlockCount} PRIORITY block sign-ups</b></u><br>`
+  div.innerHTML += `<u style="color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor}"><b>${nonPriorSignupCount} NON-PRIORITY block sign-ups</b></u><br>`
+
   for (const blok in sign) {
-    let style = priorityBlockArray[blok] ? `color:${signupPriorityStyle.fillColor}; background-color:${signupPriorityStyle.bgColor}` : `color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor};`;
+    let style = priorityBlockArray[blok] ? `color:${signupPriorityStyle.fillColor}; background-color:${signupPriorityStyle.bgColor}` : `color:${signupNonPriorStyle.fillColor}; background-color:${signupNonPriorStyle.bgColor}; `;
     let names = sign[blok];
-    //console.log(`listSignups for ${blok}:`, names);
     for (const name of names) {
-      html += `<span style="${style}">${blok}: ${name.first} ${name.last}</span><br>`;
+      let button = document.createElement("button");
+      button.style = style;
+      button.classList.add("button-as-link"); //remove border; hover background;
+      button.style.cursor = "pointer";
+      button.innerHTML = `${blok}: ${name.first} ${name.last}`;
+      button.setAttribute('blockName', blok);
+      button.onclick = (ev) => {
+        valMap.closePopup(); //necessary for zoomToblock to work
+        zoomToBlock(ev.target.getAttribute('blockName'));
+      }
+      div.appendChild(button);
     }
   }
   zoomVT();
@@ -931,7 +943,7 @@ function listSignups(sign) {
     minWidth: 250,
     keepInView: true
     })
-    .setContent(html)
+    .setContent(div)
     .setLatLng(L.latLng(vtBottom))
     .openOn(valMap);
 }
@@ -945,7 +957,7 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
-      layerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
+      layerPromise.then(() => {fillBlockDropDown();fillTownDropDown();}) //fill drop-down select list of block names
     })
 }
 
@@ -1172,6 +1184,11 @@ if (document.getElementById("getSign")) {
     listSignups(sheetSignUps); //popup list of signups
   });
 }
+function blockLinkFromBlockName(name) {
+  let link = name.replace(/( - )|\s+/g,'').toLowerCase();
+  link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
+  return link;
+}
 async function fillBlockDropDown() {
   console.log(`fillBlockDropDown`);
   let sel = document.getElementById('blocks');
@@ -1183,24 +1200,16 @@ async function fillBlockDropDown() {
         blockLayer = layer; //set global for use later
         let blox = [];
         layer.eachLayer(blok => {
-          let link = blok.feature.properties.BLOCKNAME.replace(/( - )|\s+/g,'').toLowerCase();
-          link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
+          let link = blockLinkFromBlockName(blok.feature.properties.BLOCKNAME);
           let obj = {
             name: blok.feature.properties.BLOCKNAME,
             type: blok.feature.properties.BLOCK_TYPE,
             link: link,
             adopted: sheetSignUps[link] ? true : false
           };
-          console.log(blok, link, sheetSignUps[link])
+          //console.log(blok, link, sheetSignUps[link])
           blox.push(obj);
-          //blox.push(blok.feature.properties.BLOCKNAME);
         })
-        /*
-        let blocks = layer._layers;
-        for (const key in blocks) {
-          blox.push(blocks[key].feature.properties.BLOCKNAME);
-        }
-        */
         blox.sort((a, b) => {return a.name > b.name ? 1 : -1;}); //Chrome can't handle simple a > b. Must return [1, 0, -1]
         blox.forEach(blok => {
           let opt = document.createElement('option');
@@ -1209,7 +1218,7 @@ async function fillBlockDropDown() {
           if ('PRIORITY' == blok.type) {
             //opt.style.fontWeight = 'bold'; opt.style.textDecorationLine = 'underline';
             if (blok.adopted) {
-              opt.style.backgroundColor = '#33FF66'; //'lightgreen'; //'mediumseagreen'; 
+              opt.style.backgroundColor = '#33FF66'; //'lightgreen';
             } else {
               opt.style.backgroundColor = 'salmon'; //'lightcoral'; 
             }
@@ -1229,13 +1238,62 @@ async function fillBlockDropDown() {
   }
 }
 function zoomToBlock(blockName) {
-  if (blockLayer) {
+  if (blockName && blockLayer) {
+    console.log('zoomToBlock', blockName);
     blockLayer.eachLayer(layer => {
-      if (blockName == layer.feature.properties.BLOCKNAME) {
+      let layerName = layer.feature.properties.BLOCKNAME;
+      let layerLink = blockLinkFromBlockName(layer.feature.properties.BLOCKNAME);
+      if (blockName == layerName || blockName == layerLink) {
         valMap.fitBounds(layer.getBounds()); //applies to all layers
       }
     })
   } else {
-    console.log('blockLayer not defined');
+    console.log('blockName or blockLayer not defined', blockName, blockLayer);
+  }
+}
+async function fillTownDropDown() {
+  console.log(`fillTownDropDown`);
+  let sel = document.getElementById('towns');
+  if (sel) {
+    console.log(`fillTownDropDown=>select`, sel, 'geoGroup:', geoGroup);
+    geoGroup.eachLayer(async layer => {
+      console.log(`fillTownDropDown found GeoJson layer:`, layer.options.name);
+      if ('Towns'==layer.options.name) {
+        townLayer = layer; //set global for use later
+        let towns = [];
+        layer.eachLayer(town => {
+          let obj = {
+            name: town.feature.properties.TOWNNAME,
+          };
+          towns.push(obj);
+        })
+        towns.sort((a, b) => {return a.name > b.name ? 1 : -1;}); //Chrome can't handle simple a > b. Must return [1, 0, -1]
+        towns.forEach(town => {
+          let opt = document.createElement('option');
+          opt.innerHTML = town.name;
+          opt.value = town.name;
+          sel.appendChild(opt);
+        })
+      }
+    })
+    sel.addEventListener('change', (ev) => {
+      console.log(`blockDropDown=>eventListener('change')=>value:`, ev.target.value);
+      zoomToTown(ev.target.value);
+    });
+  } else {
+    console.log(`fillTownDropDown => NOT FOUND: drop-down select element id 'towns'`);
+  }
+}
+function zoomToTown(townName) {
+  if (townName && townLayer) {
+    console.log('zoomTotown', townName);
+    townLayer.eachLayer(layer => {
+      let layerName = layer.feature.properties.TOWNNAME;
+      if (townName == layerName) {
+        valMap.fitBounds(layer.getBounds()); //applies to all layers
+      }
+    })
+  } else {
+    console.log('townName or townLayer not defined', townName, townLayer);
   }
 }

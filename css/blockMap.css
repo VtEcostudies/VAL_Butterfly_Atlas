@@ -219,3 +219,11 @@ html, body, #mapid, .row-fluid{
   margin-top: 200px;
   color: blue;
 }
+
+.button-as-link {
+  border: none;
+}
+
+.button-as-link:hover {
+  background-color: lightblue !important; /* !important to override element.style precedence */
+}
