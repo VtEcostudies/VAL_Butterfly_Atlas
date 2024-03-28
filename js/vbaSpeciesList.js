@@ -27,6 +27,7 @@ const taxonKeyA = objUrlParams.getAll('taxonKey');
 console.log('Query Param(s) taxonKey:', taxonKeyA);
 const yearMin = 1800;
 const yearMax = 2030;
+var years = `${yearMin},${yearMax}`;
 
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
 var sheetVernacularNames = getSheetVernaculars();
@@ -52,6 +53,7 @@ const eleCmpar = document.getElementById('compare');
 var sliders = document.querySelectorAll('.min-max-slider');
 
 if (year) {
+    years = year;
     let yrs = year.split(',');
     let min = yrs[0] ? Number(yrs[0]) : yearMin;
     let max = yrs[1] ? Number(yrs[1]) : yearMax;
@@ -134,6 +136,7 @@ eleAtlas.addEventListener("change", ev => {
     sliders.forEach(slider => {draw(slider, avg);});
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
+    years = `${min},${max}`; //used by table to query gbif-explorer
     loadPromise.then(() => {
         loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     })
@@ -146,6 +149,7 @@ eleMin.addEventListener("change", ev => {
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
     eleAtlas.value=null; //unset atlas drop-down list
+    years = `${min},${max}`; //used by table to query gbif-explorer
     loadPromise.then(() => {
         loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     })
@@ -157,6 +161,7 @@ eleMax.addEventListener("change", ev => {
     let cmp = eleCmpar.value;
     let rng = dropToYears(cmp);
     eleAtlas.value=null; //unset atlas drop-down list
+    years = `${min},${max}`; //used by table to query gbif-explorer
     loadPromise.then(() => {
         loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     })
@@ -317,6 +322,7 @@ async function compareBlockSpeciesLists(dataset=false, gWkt=false, tKeys=false, 
 //Object keys from a species list are different from keys from an occurrence search...
 function setDisplayObj(tax2Use, spc) {
     return {
+        'nubKey': spc.nubKey,
         'taxonKey': spc.taxonKey ? spc.taxonKey : spc.key, //hack to handle occ results commingled with species results (occ.key is occurrence-key)
         'acceptedTaxonKey': spc.acceptedKey ? spc.acceptedKey : spc.acceptedTaxonKey,
         'subspKey': 'SUBSPECIES'==spc.rank ? spc.acceptedTaxonKey : false, //what is this reassignment?
@@ -502,6 +508,7 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
         let colObj; // = objRow.insertCell(colIdx++);
         let rawKey = objSpc.taxonKey;
         let accKey = objSpc.acceptedTaxonKey;
+        let nubKey = objSpc.nubKey;
         //console.log('key:', key);
         //console.log('fillRow', key, val, hedObj[key], hedObj[`${key}`])
         if (hedObj[key]) { //filter species object through header object
@@ -570,7 +577,8 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                 let rang = val ? val.split('/') : []; if (rang[1]) {console.log(`Occurrence having date range: ${val}`);}
                 let date = val ? val.split('/')[0] : false;
                 date = date ? moment(date).format('YYYY-MM-DD') : 'N/A';
-                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${objSpc.gbifId} Date: ${val}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
+                //colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${objSpc.gbifId} Date: ${val}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
+                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="https://val.vtecostudies.org/gbif-explorer/?view=MAP&taxonKey=${nubKey}&geometry=${geometry}&gbif-year=${years}">${date}</a>`;
                 break;
             case 'vernacularName': //don't use GBIF occurrence value for vernacularName, use VAL checklist or VAL google sheet
                 colObj = objRow.insertCell(colIdx++);
