@@ -23,6 +23,9 @@ for (const spc of checklistVtButterflies.results) {
 
 const objUrlParams = new URLSearchParams(window.location.search);
 const geometry = objUrlParams.get('geometry');
+const centrLat = objUrlParams.get('lat');
+const centrLon = objUrlParams.get('lon');
+const mapZoom = objUrlParams.get('zoom');
 const dataset = objUrlParams.get('dataset');
 const block = objUrlParams.get('block');
 const year = objUrlParams.get('year');
@@ -32,6 +35,8 @@ console.log('Query Param(s) taxonKey:', taxonKeyA);
 const yearMin = 1800;
 const yearMax = 2030;
 var years = `${yearMin},${yearMax}`;
+
+console.log('Query Params Lat Lon Zoom', centrLat, centrLon, mapZoom)
 
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
 var sheetVernacularNames = getSheetVernaculars();
@@ -221,19 +226,19 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
             tax2Use = sciName;
             taxFrom = 'VT Butterflies <- GBIF Original';
             spc = vtNameIndex[sciName];
-            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
         } else if (vtNameIndex[accName]) {
             //console.log('FOUND BACKBONE', accName, 'in VT Index', vtNameIndex[accName]);
             tax2Use = accName;
             taxFrom = 'VT Butterflies <- GBIF Accepted';
             spc = vtNameIndex[accName];
-            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
         } else {
             //console.log('NEITHER FOUND - SOURCE', sciName, accName, 'using Occ:', occ);
             tax2Use = accName;
             taxFrom = 'GBIF Backbone Accepted';
             spc = occ;
-            spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
             console.log('NEITHER FOUND - RESULT', sciName, accName, 'using Occ:', occ, 'leaving spc:', spc);
         }
 
@@ -244,7 +249,7 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
             tax2Use = accSynN;
             spc = vtNameIndex[accSynN]; //we assume this is always valid
             taxFrom = 'VT Butterflies <- GBIF Synonym';
-            spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+            spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
         }
 
         // Substitute SPECIES for SUBSPECIES if ti exists
@@ -256,7 +261,7 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
                 spc = vtNameIndex[tax2Use];
                 taxFrom += ' <- Subsp.';
                 spc.subspKey = subspKey;
-                spc.eventDate = evtDate; spc.gbifId = occ.gbifID; spc.taxonSource = taxFrom;
+                spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
             } else {
                 console.log('SUBSPECIES INCOMPLETE - NO parent SPECIES defined. Name:', tax2Use, 'species:', spc.species, 'parent:', spc.parent);
             }
@@ -301,8 +306,19 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
             //taxonSource:'Source',
             vernacularName:'Common Name',
             image:'Image',
-            eventDate:'Last Observed'},
-        'colIds' : {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6},
+            eventDate:'Last Observed'
+            //,occurrenceId:'Occurrence ID'
+         },
+        'colIds' : {
+            'Taxon Key':0
+            ,'Name':1
+            ,'Family':2
+            ,'Rank':3
+            ,'Common Name':4
+            ,'Image':5
+            ,'Last Observed':6
+            //,'OccurrenceID':7
+        },
         'occCount': arrOccs.length,
         'objSpcs': objSpcs, 
         'query': occs.query
@@ -342,7 +358,7 @@ function setDisplayObj(tax2Use, spc) {
         'vernacularNames': spc.vernacularNames ? spc.vernacularNames : [],
         'image': false, //flag fillRow to show an image
         'eventDate': spc.eventDate,
-        'gbifId': spc.gbifId
+        'occurrenceId': spc.occurrenceId
     }
 }
     
@@ -356,7 +372,7 @@ coordinates: Array (1)
     3: Array [ -72.6245558831222, 44.2917251487992 ]
     4: Array [ -72.56200954781823, 44.291742756710484 ]
 */
-async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false, tKeys=false, years=false) {
+async function getBlockSpeciesListBackbone(block='block_name', dataset=false, gWkt=false, tKeys=false, years=false) {
 
     let occs = await getOccsByFilters(0,300,dataset,gWkt,false,tKeys,years);
     //console.log('getBlockSpeciesList', occs);
@@ -397,7 +413,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
                     'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                     'image': false,
                     'eventDate':  arrOccs[i].eventDate,
-                    'gbifId': arrOccs[i].gbifID
+                    'occurrenceId': arrOccs[i].occurrenceID
                 };
             }
         } else { //add new name here only if rank is SPECIES or SUBSPECIES. Deal with GENUS not represented by SPECIES later.
@@ -412,7 +428,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
                     'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                     'image': false,
                     'eventDate':  arrOccs[i].eventDate,
-                    'gbifId': arrOccs[i].gbifID
+                    'occurrenceId': arrOccs[i].occurrenceID
                 };
                 objGnus[taxGnus]={'canonicalName':canName, 'taxonRank':taxRank}; //add to checklist of GENUS already represented in list
             }
@@ -435,7 +451,7 @@ async function getBlockSpeciesList(block='block_name', dataset=false, gWkt=false
                 'vernacularName': arrOccs[i].vernacularName, //not used - see fillRow
                 'image': false,
                 'eventDate':  arrOccs[i].eventDate,
-                'gbifId': arrOccs[i].gbifID
+                'occurrenceId': arrOccs[i].occurrenceID
             }
             objGnus[taxGnus]={'canonicalName':canName, 'taxonRank':taxRank};
         }
@@ -473,10 +489,8 @@ async function delTableWait() {
 async function addGBIFLink(geometry, taxonKeys, count) {
     let eleGBIF = document.getElementById("gbifLink");
     //eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `${exploreUrl}?view=MAP&${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `${exploreUrl}?view=MAP&${taxonKeys}&geometry=${geometry}`;
-    //eleGBIF.href = `${exploreUrl}?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
-    eleGBIF.href = `${exploreUrl}?view=MAP&siteName=vtButterflies&geometry=${geometry}`;
+    //eleGBIF.href = `${exploreUrl}?siteName=${siteName}&view=MAP&${taxonKeys}&geometry=${geometry}`;
+    eleGBIF.href = `${exploreUrl}?siteName=${siteName}&view=MAP&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
     eleGBIF.target = "_blank";
     eleGBIF.innerText = `GBIF Occurrences (${count})`;
 }
@@ -509,7 +523,8 @@ async function addTaxaFromArr(objSpcs, hedObj) {
 async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
     let colIdx = 0;
     for (const [key, val] of Object.entries(objSpc)) {
-        let colObj; // = objRow.insertCell(colIdx++);
+        let colObj;
+        let href;
         let rawKey = objSpc.taxonKey;
         let accKey = objSpc.acceptedTaxonKey;
         let nubKey = objSpc.nubKey;
@@ -566,14 +581,12 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                 break;
             case 'scientificName':
                 colObj = objRow.insertCell(colIdx++);
-                //colObj.innerHTML = `<a title="Wikipedia: ${spcKey}" href="https://en.wikipedia.org/wiki/${spcKey}">${val}</a>`;
-                //colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonName=${val}">${val}</a>`;
-                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonKey=${rawKey}&taxonName=${val}">${val}</a>`;
+                colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=${siteName}&taxonKey=${rawKey}&taxonName=${val}">${val}</a>`;
                 break;
             case 'acceptedName':
                 colObj = objRow.insertCell(colIdx++);
                 if (val) {
-                    colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=vtButterflies&taxonKey=${accKey}&taxonName=${val}">${val}</a>`;
+                    colObj.innerHTML = `<a title="VAL Species Profile: ${val}" href="${profileUrl}?siteName=${siteName}&taxonKey=${accKey}&taxonName=${val}">${val}</a>`;
                 } else {colObj.innerHTML = '';}
                 break;
             case 'eventDate':
@@ -581,17 +594,17 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                 let rang = val ? val.split('/') : []; if (rang[1]) {console.log(`Occurrence having date range: ${val}`);}
                 let date = val ? val.split('/')[0] : false;
                 date = date ? moment(date).format('YYYY-MM-DD') : 'N/A';
-                //colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${objSpc.gbifId} Date: ${val}" href="https://gbif.org/occurrence/${objSpc.gbifId}">${date}</a>`;
-                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="${exploreUrl}?view=MAP&gbif-year=${years}&taxonKey=${nubKey}&geometry=${geometry}">${date}</a>`;
+                href = `${exploreUrl}?view=MAP&gbif-year=${years}&taxonKey=${nubKey}&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
+                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="${href}">${date}</a>`;
+                break;
+            case 'occurrenceId':
+                colObj = objRow.insertCell(colIdx++);
+                href = `${exploreUrl}?view=MAP&occurrenceId=${val}`;
+                colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrence Record: ${val}" href="${href}">${val}</a>`;
                 break;
             case 'vernacularName': //don't use GBIF occurrence value for vernacularName, use VAL checklist or VAL google sheet
                 colObj = objRow.insertCell(colIdx++);
-                //colObj.innerHTML = val ? val : (checklistVernacularNames[key] ? checklistVernacularNames[key][0].vernacularName : '');
-                //colObj.innerHTML = val ? val : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
-                //if (checklistVernacularNames[key]) {console.log('vernacularNames for', key, checklistVernacularNames[key].map(ky => ky.vernacularName).join(','));}
-                //colObj.innerHTML = checklistVernacularNames[key] ? checklistVernacularNames[key][0].vernacularName : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
-                //colObj.innerHTML = checklistVernacularNames[key] ? checklistVernacularNames[key] : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
-                colObj.innerHTML = val ? val : (sheetVernacularNames[accKey] ? sheetVernacularNames[accKey][0].vernacularName : '');
+                colObj.innerHTML = val ? val : (sheetVernacularNames[key] ? sheetVernacularNames[key][0].vernacularName : '');
                 break;
             case 'taxonKey':
                 colObj = objRow.insertCell(colIdx++);
@@ -691,7 +704,7 @@ async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) 
     setTitleText(block, dataset, taxonKeys, Object.keys(spcs.objSpcs).length);
     setEbutInfo();
     setInatInfo();
-    setDataTable(); //MUST be called after table has finished updating.
+    setDataTable(spcs.colIds); //MUST be called after table has finished updating.
     setPageUrl(block, geometry, taxonKeyA, years, compare);
     enableInput();
     return Promise.resolve(1);
@@ -729,14 +742,12 @@ async function startUp(fCfg) {
 }
 
 let tableSort = false;
-async function setDataTable() {
-    let columnIds = {'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6};
-
+async function setDataTable(columnIds={'Taxon Key':0,'Name':1,'Family':2,'Rank':3,'Common Name':4,'Image':5,'Last Observed':6}) {
     let columnDefs = [
         { orderSequence: ['desc', 'asc'], targets: [6] },
         { orderSequence: ['asc', 'desc'], targets: [1,2] }
     ]
-    //tableSortHeavyNew(tableId='species-table', orderColumn[], excludeColumnIds=[],  columnDefs=[], limit=10, responsive=false, paging=false, searching=false, info=false)
+    //tableSortHeavy(tableId='species-table', orderColumn[], excludeColumnIds=[],  columnDefs=[], limit=10, responsive=false, paging=false, searching=false, info=false)
     if (tableSort) {
         tableSort.clear();
         tableSort.destroy();

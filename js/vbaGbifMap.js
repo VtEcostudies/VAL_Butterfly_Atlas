@@ -9,6 +9,7 @@ import { fetchJsonFile, parseCanonicalFromScientific } from '../VAL_Web_Utilitie
 import { getSheetSignups, getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
+import { getLatLngCenter } from './geoPointsToCentroid.js';
 
 var sheetVernacularNames = await getSheetVernaculars();
 
@@ -328,6 +329,7 @@ function onGeoBoundaryFeature(feature, layer) {
         let cdts = feature.geometry.coordinates[0][0];
         let gWkt = 'POLYGON((';
         //console.log('feature.geometry.coordinates[0][0]', cdts)
+        //console.log('feature', feature);
         //for (var i=0; i<cdts.length; i++) { //GBIF changed their WKT parser to only handle anti-clockwise POLYGON vertices. Reverse order:
         for (var i=cdts.length-1; i>=0; i--) {
             console.log(`vbaGbifMap.js=>onGeoBoundaryFeature=>click(): feat.geom.cdts[0][0][${i}]`, cdts[i]);
@@ -335,6 +337,12 @@ function onGeoBoundaryFeature(feature, layer) {
         }
         gWkt = gWkt.slice(0,-1) + '))';
         //console.log('WKT Geometry:', gWkt);
+        let crev = cdts.map(cdt => [cdt[1],cdt[0]]); //reverse leaflet lon,lat to lat,lon for centroid math
+        let centroid = getLatLngCenter(crev);
+        let centrLat = centroid[0];
+        let centrLon = centroid[1];
+        let mapZoom = 12;
+        console.log('CENTROID', centroid);
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
           pops += `<a target="_blank" href="https://s3.us-west-2.amazonaws.com/val.surveyblocks/${link}.pdf">Get <b>BLOCK MAP</b> for ${name}</a></br></br> `;
         }
@@ -346,7 +354,7 @@ function onGeoBoundaryFeature(feature, layer) {
           }
         }
         pops += `<a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSegdid40-VdB_xtGvHt-WIEWR_TapHnbaxj-LJWObcWrS5ovg/viewform?usp=pp_url&entry.1143709545=${link}"><b>SIGN-UP</b> for ${name}</a></br></br>`;
-        pops += `<a target="_blank" href="vba_species_list.html?block=${name}&geometry=${gWkt}">Get <b>SPECIES LIST</b> for ${name}</a></br>`;
+        pops += `<a target="_blank" href="vba_species_list.html?block=${name}&geometry=${gWkt}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}">Get <b>SPECIES LIST</b> for ${name}</a></br>`;
         if (pops) {layer.bindPopup(pops).openPopup();}
       }
     });
