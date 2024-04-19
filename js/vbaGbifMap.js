@@ -955,6 +955,7 @@ function listSignups(sign) {
       button.onclick = (ev) => {
         valMap.closePopup(); //necessary for zoomToblock to work
         zoomToBlock(ev.target.getAttribute('blockName'));
+        LayerToFront('Survey Blocks');
       }
       div.appendChild(button);
     }
