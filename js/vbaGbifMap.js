@@ -197,6 +197,17 @@ function MapOverlayAdd(e) {
   })
 }
 
+function LayerToFront(layerName) {
+  console.log('LayerToFront looking for GeoJson layer:', layerName);
+  geoGroup.eachLayer(layer => {
+    //console.log(`LayerToFront found GeoJson layer:`, layer.options.name);
+    if (layer.options.name == layerName) {
+      console.log(`LayerToFront found GeoJson layer:`, layer.options.name);
+      layer.bringToFront();
+    }
+  })
+}
+
 function setZoomStyle() {
   let z = valMap.getZoom();
   let f = z < 12 ? 4/z : 0;
@@ -290,7 +301,7 @@ function onGeoBoundaryFeature(feature, layer) {
       for (var key in obj) { //iterate over feature properties
         switch(key.toLowerCase()) {
           case 'blockname':
-            tips = `${obj[key]}<br>`;
+            tips = `Block: ${obj[key]}<br>`;
             let blok = blockLinkFromBlockName(feature.properties.BLOCKNAME);
             if (sheetSignUps[blok]) {
               for (const name of sheetSignUps[blok])
@@ -298,8 +309,10 @@ function onGeoBoundaryFeature(feature, layer) {
             }
             break;
           case 'townname':
+            tips = `Town: ${obj[key]}`;
+            break;
           case 'cntyname':
-            tips = `${obj[key]}<br>`;
+            tips = `County: ${obj[key]}`;
             break;
         }
       }
@@ -884,8 +897,8 @@ function initGbifStandalone(layerPath=false, layerName, layerId) {
 }
 
 /*
-  Deprecated in favor of file-scope variable 'sheetSignUps'
-  All we need to do now is to call putSignups. 
+  Earlier, this was deprecated in favor of file-scope variable 'sheetSignUps'
+  However, now there's an interactive call to refresh those, so we DO use this.
 */
 async function getBlockSignups() {
   //get an array of sheetSignUps by blockname with name and date
@@ -1242,6 +1255,8 @@ async function fillBlockDropDown() {
     sel.addEventListener('change', (ev) => {
       console.log(`blockDropDown=>eventListener('change')=>value:`, ev.target.value);
       zoomToBlock(ev.target.value);
+      sel.value = 'default'; //always reset value to disabled postion zero, 'Survey Blocks...'
+      LayerToFront('Survey Blocks');
     });
   } else {
     console.log(`fillBlockDropDown => NOT FOUND: drop-down select element id 'blocks'`);
@@ -1289,6 +1304,8 @@ async function fillTownDropDown() {
     sel.addEventListener('change', (ev) => {
       console.log(`blockDropDown=>eventListener('change')=>value:`, ev.target.value);
       zoomToTown(ev.target.value);
+      sel.value = 'default'; //always reset value to disabled postion zero, 'Towns...'
+      LayerToFront('Towns');
     });
   } else {
     console.log(`fillTownDropDown => NOT FOUND: drop-down select element id 'towns'`);
