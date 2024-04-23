@@ -330,8 +330,8 @@ function onGeoBoundaryFeature(feature, layer) {
         var name = feature.properties.BLOCKNAME;
 
         var link = blockLinkFromBlockName(feature.properties.BLOCKNAME);
-        link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
-        console.log('Survey Block Layer click | block link name:', link);
+        var maplink = link.replace('southmountain','southmtn'); //all SOUTH MOUNTAIN blockmap names was abbreviated. hack it.
+        console.log('Survey Block Layer click | block link name:', link, 'map like name:', maplink);
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
           pops = `<b><u>BUTTERFLY ATLAS PRIORITY BLOCK</u></b></br></br>`;
         } else {
@@ -357,7 +357,7 @@ function onGeoBoundaryFeature(feature, layer) {
         let mapZoom = 12;
         console.log('CENTROID', centroid);
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
-          pops += `<a target="_blank" href="https://s3.us-west-2.amazonaws.com/val.surveyblocks/${link}.pdf">Get <b>BLOCK MAP</b> for ${name}</a></br></br> `;
+          pops += `<a target="_blank" href="https://s3.us-west-2.amazonaws.com/val.surveyblocks/${maplink}.pdf">Get <b>BLOCK MAP</b> for ${name}</a></br></br> `;
         }
         if (sheetSignUps[link]) {
           let names = sheetSignUps[link];
@@ -398,7 +398,7 @@ function onGeoBoundaryStyle(feature) {
         //console.log(`onGeoBoundaryStyle found NON-PRIORITY block signup for`, blockName);
         style = signupNonPriorStyle;
       }
-}
+    }
     return style;
   } else {
     if (feature.properties.BIOPHYSRG1) { //biophysical regions
@@ -1210,7 +1210,6 @@ if (document.getElementById("getSign")) {
 }
 function blockLinkFromBlockName(name) {
   let link = name.replace(/( - )|\s+/g,'').toLowerCase();
-  link = link.replace('southmountain','southmtn'); //this blockmap's name was abbreviated. hack it.
   return link;
 }
 async function fillBlockDropDown() {

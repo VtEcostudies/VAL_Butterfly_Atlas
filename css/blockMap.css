@@ -222,6 +222,10 @@ html, body, #mapid, .row-fluid{
 
 .button-as-link {
   border: none;
+  display: block;
+  text-align: left;
+  text-decoration: underline;
+  padding-bottom: 5px;
 }
 
 .button-as-link:hover {

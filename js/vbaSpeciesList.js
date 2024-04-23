@@ -22,6 +22,7 @@ for (const spc of checklistVtButterflies.results) {
 }
 
 const objUrlParams = new URLSearchParams(window.location.search);
+const gadmGid = objUrlParams.get('gadmGid');
 const geometry = objUrlParams.get('geometry');
 const centrLat = objUrlParams.get('lat');
 const centrLon = objUrlParams.get('lon');
