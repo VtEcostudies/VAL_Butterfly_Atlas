@@ -227,7 +227,34 @@ html, body, #mapid, .row-fluid{
   text-decoration: underline;
   padding-bottom: 5px;
 }
-
 .button-as-link:hover {
   background-color: lightblue !important; /* !important to override element.style precedence */
+}
+#rank-wrap {
+  position: absolute;
+  z-index: 10000;
+  bottom: 3px;
+  left: 3px;
+  max-height: 350px;
+  height: auto;
+  width: 180px;
+  pointer-events: all;
+}
+#rank-list {
+  z-index: 10000;
+  background-color: lightgrey;
+  height: auto;
+  max-height: 300px;
+  width: 100%;
+  overflow-y: auto;
+}
+#rank-data {
+  z-index: 10000;
+  background-color: lightgrey;
+  height: auto;
+  width: 100%;
+}
+.count-range {
+  display: inline !important;
+  width: 40%;
 }

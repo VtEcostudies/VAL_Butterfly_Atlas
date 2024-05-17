@@ -10,6 +10,7 @@ import { getSheetSignups, getSheetVernaculars } from '../VAL_Web_Utilities/js/fe
 import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { getLatLngCenter } from './geoPointsToCentroid.js';
+import { getBlockSpeciesListVT } from './vbaUtils.js';
 
 var sheetVernacularNames = await getSheetVernaculars();
 
@@ -337,7 +338,6 @@ function onGeoBoundaryFeature(feature, layer) {
         } else {
           pops = `<b><u>BUTTERFLY ATLAS SURVEY BLOCK</u></b></br></br>`;
         }
-        //figure out if block has been chosen already
         let type = feature.geometry.type; //this is MULTIPOLYGON, which I think GBIF can't handle
         let cdts = feature.geometry.coordinates[0][0];
         let gWkt = 'POLYGON((';
@@ -359,6 +359,7 @@ function onGeoBoundaryFeature(feature, layer) {
         if (feature.properties.BLOCK_TYPE=='PRIORITY') {
           pops += `<a target="_blank" href="https://s3.us-west-2.amazonaws.com/val.surveyblocks/${maplink}.pdf">Get <b>BLOCK MAP</b> for ${name}</a></br></br> `;
         }
+        //figure out if block has been chosen already
         if (sheetSignUps[link]) {
           let names = sheetSignUps[link];
           //console.log(`sheetSignups for ${link}`, names);
@@ -1208,6 +1209,43 @@ if (document.getElementById("getSign")) {
     listSignups(sheetSignUps); //popup list of signups
   });
 }
+if (document.getElementById("getRank")) {
+  document.getElementById("getRank").addEventListener("click", async () => {
+    eleWait.style.display = 'block';
+    getBlockSpeciesRank(false).then(bRank => {
+      listBlockSpeciesRank(bRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+      eleWait.style.display = 'none';
+    })
+  });
+}
+if (document.getElementById("getList")) {
+  document.getElementById("getList").addEventListener("click", async () => {
+    listBlockSpeciesRank(blockRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+  });
+}
+let eleBot = document.getElementById("bot-count");
+if (eleBot) {
+  eleBot.addEventListener("change", async () => {
+    listBlockSpeciesRank(blockRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+  });
+}
+let eleTop = document.getElementById("top-count");
+if (eleTop) {
+  eleTop.addEventListener("change", async () => {
+    listBlockSpeciesRank(blockRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+  });
+}
+let eleData = document.getElementById("rank-wrap");
+if (eleData) {
+  eleData.addEventListener("wheel", async (e) => {
+    console.log("wheel");
+    e.stopImmediatePropagation();
+  });
+}
+$('#rank-wrap').on('click dblclick', function(e) {
+  e.stopImmediatePropagation();
+});
+
 function blockLinkFromBlockName(name) {
   let link = name.replace(/( - )|\s+/g,'').toLowerCase();
   return link;
@@ -1322,5 +1360,106 @@ function zoomToTown(townName) {
     })
   } else {
     console.log('townName or townLayer not defined', townName, townLayer);
+  }
+}
+
+let blockRank = [];
+//Find the 'Survey Blocks' geoJson layer, iterate over its blocks, build a blockRank array
+async function getBlockSpeciesRank(type='PRIORITY', limit=0) {
+  return new Promise((resolve, reject) => {
+    try {
+      geoGroup.eachLayer(async layer => {
+        if ('Survey Blocks'==layer.options.name) {
+          let arrLayer = layer.getLayers();
+          console.log('eachLayer', arrLayer, arrLayer.length);
+          let i = 0; let exit = 0;
+          blockRank = [];
+          layer.eachLayer(async subLay => {
+            let blockType = subLay.feature.properties.BLOCK_TYPE;
+            let blockName = subLay.feature.properties.BLOCKNAME;
+            if ((!type || type == blockType) && (!limit || i<limit) && !exit) {
+              let blockLink = blockLinkFromBlockName(blockName);
+              let blockGeom = await getFeatureGeom(subLay.feature);
+              let blockList = await getBlockSpeciesListVT(false, blockGeom.wkt, butterflyKeys, '2023,2027');
+              let blockData = {name:blockName,link:blockLink,type:blockType,wkt:blockGeom.wkt,centroid:blockGeom.centroid,spcCount:blockList.spcCount};
+              if (!blockRank[blockList.spcCount]) {blockRank[blockList.spcCount] = {};}
+              blockRank[blockList.spcCount][blockLink]=blockData;
+            }
+            i++;
+            if ((i>=arrLayer.length || (limit && i>=limit)) && !exit) {
+              console.log('getBlockSpeciesRank Exit Value:', i);
+              exit = 1;
+              resolve(blockRank);
+            }
+          })
+        }
+      })
+    } catch(err) {
+      exit = 1;
+      reject(err);
+    }
+  })
+}
+function listBlockSpeciesRank(ranks, bot=40, top=113) {
+  let tbl = document.getElementById("rank-data");
+  tbl.innerHTML = '';
+  let rowCount = 0;
+  if (ranks && ranks.length) {
+    ranks.filter((rnk,idx) => idx >= bot && idx <= top)
+      //.slice().reverse() //if we use a table, insertRow(0) reverses the order.
+      .forEach((val,idx) => {
+        //console.log('listBlockSpeciesRank 1D:', val, idx, typeof val);
+        Object.keys(val).forEach((nam,jdx) => {
+          //console.log(`${idx} listBlockSpeciesRank 2D:`, nam, jdx, val[nam]);
+          let obj = val[nam];
+          addBlockSpeciesRank(obj);
+        })
+      })
+    } else {
+      //alert(`No blocks found having VBA2 Atlas species counts between ${bot} and ${top}.`)
+      let msg = `No block species data found. 'Rank Blocks' loads the data.`;
+      console.log(msg);
+      putRankMessage(msg);
+    }
+}
+function putRankMessage(msg) {
+  let tbl = document.getElementById("rank-data");
+  let row = tbl.insertRow(0);
+  let txt = row.insertCell(0);
+  txt.innerHTML = msg;
+}
+function addBlockSpeciesRank(obj) {
+  let tbl = document.getElementById("rank-data");
+  let row = tbl.insertRow(0);
+  let bt1 = row.insertCell(0);
+  let cell2 = row.insertCell(1);
+  cell2.innerHTML = `<a href="vba_species_list.html?block=${obj.name}&geometry=${obj.wkt}&year=2023,2027&centroid=${obj.centroid}&zoom=12">${obj.spcCount}</a>`
+  bt1.classList.add("button-as-link"); //remove border; hover background;
+  bt1.style.cursor = "pointer";
+  bt1.innerHTML = `${obj.link}`;//: ${obj.spcCount}`;
+  bt1.setAttribute('blockName', obj.link);
+  bt1.onclick = (ev) => {
+    valMap.closePopup(); //necessary for zoomToblock to work
+    zoomToBlock(ev.target.getAttribute('blockName'));
+    LayerToFront('Survey Blocks');
+  }
+}
+async function getFeatureGeom(feature) {
+  let cdts = feature.geometry.coordinates[0][0];
+  let gWkt = 'POLYGON((';
+  //console.log('feature.geometry.coordinates[0][0]', cdts)
+  //console.log('feature', feature);
+  //for (var i=0; i<cdts.length; i++) { //GBIF changed their WKT parser to only handle anti-clockwise POLYGON vertices. Reverse order:
+  for (var i=cdts.length-1; i>=0; i--) {
+      console.log(`vbaGbifMap.js=>onGeoBoundaryFeature=>click(): feat.geom.cdts[0][0][${i}]`, cdts[i]);
+    gWkt += `${cdts[i][0]} ${cdts[i][1]},`;
+  }
+  gWkt = gWkt.slice(0,-1) + '))';
+  //console.log('WKT Geometry:', gWkt);
+  let crev = cdts.map(cdt => [cdt[1],cdt[0]]); //reverse leaflet lon,lat to lat,lon for centroid math
+  let centroid = getLatLngCenter(crev);
+  return {
+    wkt: gWkt,
+    centroid: centroid
   }
 }

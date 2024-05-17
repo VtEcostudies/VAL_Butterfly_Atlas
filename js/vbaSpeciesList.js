@@ -7,20 +7,21 @@ import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDa
 import { init, draw, update } from './doubleSlider.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
+import { getBlockSpeciesListVT } from './vbaUtils.js';
 
 var siteName = 'vtButterflies';
 var homeUrl;
 var exploreUrl;
 var resultsUrl;
 var profileUrl;
+/*
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
-
 let vtNameIndex = {};
 for (const spc of checklistVtButterflies.results) {
     vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
 }
-
+*/
 const objUrlParams = new URLSearchParams(window.location.search);
 const gadmGid = objUrlParams.get('gadmGid');
 const geometry = objUrlParams.get('geometry');
@@ -187,7 +188,7 @@ eleCmpar.addEventListener("change", ev => {
         loadPromise = loadPage(block, geometry, taxonKeyA, `${min},${max}`, `${rng.min},${rng.max}`);
     })
 })
-
+/*
 async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
     let page = {};
     let results = [];
@@ -202,7 +203,7 @@ async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false)
     } while (!page.endOfRecords && off<max);
 }  
 
-async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, years=false) {
+async function LocalGetBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, years=false) {
     let occs = await getBlockOccs(dataset, gWkt, tKeys, years);
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
@@ -325,10 +326,37 @@ async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, yea
         'query': occs.query
     };
 }
+*/
+async function wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, years) {
+    let res = await getBlockSpeciesListVT(dataset, gWkt, tKeys, years);
+    //add the columns and columnIds to show in the table
+    res.cols = {
+        taxonKey:'Taxon Key',
+        scientificName:'Name',
+        family:'Family',
+        taxonRank:'Rank',
+        //taxonSource:'Source',
+        vernacularName:'Common Name',
+        image:'Image',
+        eventDate:'Last Observed'
+        //,occurrenceId:'Occurrence ID'
+     }
+    res. colIds = {
+        'Taxon Key':0
+        ,'Name':1
+        ,'Family':2
+        ,'Rank':3
+        ,'Common Name':4
+        ,'Image':5
+        ,'Last Observed':6
+        //,'OccurrenceID':7
+    }
+    return res;
+}
 
 async function compareBlockSpeciesLists(dataset=false, gWkt=false, tKeys=false, years=false, compare=false) {
-    let tres = await getBlockSpeciesListVT(dataset, gWkt, tKeys, years);
-    let cres = await getBlockSpeciesListVT(dataset, gWkt, tKeys, compare);
+    let tres = await wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, years);
+    let cres = await wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, compare);
     let trgt = tres.objSpcs; 
     for (const key in cres.objSpcs) { //remove entries from target that are also found in compare
         if (trgt[key]) {
@@ -696,7 +724,7 @@ async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) 
     if (compare) {
         spcs = await compareBlockSpeciesLists(dataset, geometry, taxonKeys, years, compare);
     } else {
-        spcs = await getBlockSpeciesListVT(dataset, geometry, taxonKeys, years);
+        spcs = await wrapGetBlockSpeciesListVT(dataset, geometry, taxonKeys, years);
     }
     await addGBIFLink(geometry, taxonKeys, spcs.occCount);
     await addTaxaFromArr(spcs.objSpcs, spcs.cols);
