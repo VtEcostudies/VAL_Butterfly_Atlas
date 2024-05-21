@@ -1433,7 +1433,7 @@ function addBlockSpeciesRank(obj) {
   let row = tbl.insertRow(0);
   let bt1 = row.insertCell(0);
   let cell2 = row.insertCell(1);
-  cell2.innerHTML = `<a href="vba_species_list.html?block=${obj.name}&geometry=${obj.wkt}&year=2023,2027&centroid=${obj.centroid}&zoom=12">${obj.spcCount}</a>`
+  cell2.innerHTML = `<a href="vba_species_list.html?block=${obj.name}&geometry=${obj.wkt}&year=2023,2027&lat=${obj.centroid[0]}&lon=${obj.centroid[1]}&zoom=12">${obj.spcCount}</a>`
   bt1.classList.add("button-as-link"); //remove border; hover background;
   bt1.style.cursor = "pointer";
   bt1.innerHTML = `${obj.link}`;//: ${obj.spcCount}`;
