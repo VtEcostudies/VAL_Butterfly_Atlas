@@ -981,9 +981,22 @@ if (document.getElementById("valSurveyBlocksVBA")) {
   getBlockSignups() //sets global array sheetSignups
     .then(signUps => {
       putSignups(signUps);
-      customLayerPromise.then(() => {fillBlockDropDown();}) //fill drop-down select list of block names
-      townLayerPromise.then(() => {fillTownDropDown();}) //fill drop-down select list of town names
+      customLayerPromise.then(() => {fillBlockDropDown().then(()=>{setZoomFromQueryParams();});}) //fill drop-down select list of block names
+      townLayerPromise.then(() => {fillTownDropDown().then(()=>{setZoomFromQueryParams();});}) //fill drop-down select list of town names
     })
+}
+
+function setZoomFromQueryParams() {
+  const objUrlParams = new URLSearchParams(window.location.search);
+  const block = objUrlParams.get('block');
+  const town =  objUrlParams.get('town');
+  if (block) {
+    console.log('setZoomFromQueryParams block:', block);
+    zoomToBlock(block);
+  } else if (town) {
+    console.log('setZoomFromQueryParams town:', town);
+    zoomToTown(town);
+  }
 }
 
 async function getLiveData(dataset='vba2', geomWKT=false, gadmGid=false, taxonKeys=false, dateRange=false) {
