@@ -1228,6 +1228,7 @@ if (document.getElementById("getRank")) {
     get('blockRank_'+dateNow()).then(ranks => {
       console.log(`getRank.click=>get(blockRank_${dateNow()}):`, ranks);
       if (ranks && ranks.length) {
+        blockRank = ranks;
         listBlockSpeciesRank(ranks, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
         alert(`Blocks already ranked for today's date: ${dateNow()}.`);
       } else {
