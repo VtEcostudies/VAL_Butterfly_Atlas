@@ -1229,6 +1229,7 @@ if (document.getElementById("getRank")) {
       console.log(`getRank.click=>get(blockRank_${dateNow()}):`, ranks);
       if (ranks && ranks.length) {
         listBlockSpeciesRank(ranks, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+        alert(`Blocks already ranked for today's date: ${dateNow()}.`);
       } else {
         eleWait.style.display = 'block';
         getBlockSpeciesRank(false).then(bRank => {
@@ -1241,7 +1242,7 @@ if (document.getElementById("getRank")) {
 }
 if (document.getElementById("dldRank")) {
   document.getElementById("dldRank").addEventListener("click", async () => {
-    downloadBlockRank(0);
+    downloadBlockRank();
   });
 }
 let eleBot = document.getElementById("bot-count");
@@ -1478,7 +1479,10 @@ function addBlockSpeciesRank(obj) {
 }
 async function downloadBlockRank(type=0) {
   let ranks = await get('showRanks_'+dateNow());
-  if (!ranks || !Object.keys(ranks).length) {console.log('showRanks Array is empty'); return;}
+  if (!ranks || !Object.keys(ranks).length) {
+    console.log('showRanks Array is empty'); 
+    return alert("Please run 'Rank Blocks' and let it finish before downloading block ranks.");
+  }
   //if (type) { //json-download
     console.log('JSON Download:', ranks);
     var jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ranks));
