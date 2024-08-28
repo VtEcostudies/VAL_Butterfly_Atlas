@@ -5,12 +5,13 @@
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
 import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, gadmGids, butterflyKeys } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
-import { fetchJsonFile, parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { fetchJsonFile, parseCanonicalFromScientific, jsonToCsv, dateNow, timeNow, timeStamp, createHtmlDownloadData } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { getSheetSignups, getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
 import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { getLatLngCenter } from './geoPointsToCentroid.js';
 import { getBlockSpeciesListVT } from './vbaUtils.js';
+import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
 
 var sheetVernacularNames = await getSheetVernaculars();
 
@@ -1224,16 +1225,23 @@ if (document.getElementById("getSign")) {
 }
 if (document.getElementById("getRank")) {
   document.getElementById("getRank").addEventListener("click", async () => {
-    eleWait.style.display = 'block';
-    getBlockSpeciesRank(false).then(bRank => {
-      listBlockSpeciesRank(bRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
-      eleWait.style.display = 'none';
+    get('blockRank_'+dateNow()).then(ranks => {
+      console.log(`getRank.click=>get(blockRank_${dateNow()}):`, ranks);
+      if (ranks && ranks.length) {
+        listBlockSpeciesRank(ranks, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+      } else {
+        eleWait.style.display = 'block';
+        getBlockSpeciesRank(false).then(bRank => {
+          listBlockSpeciesRank(bRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+          eleWait.style.display = 'none';
+        })
+      } 
     })
-  });
+});
 }
-if (document.getElementById("getList")) {
-  document.getElementById("getList").addEventListener("click", async () => {
-    listBlockSpeciesRank(blockRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
+if (document.getElementById("dldRank")) {
+  document.getElementById("dldRank").addEventListener("click", async () => {
+    downloadBlockRank(0);
   });
 }
 let eleBot = document.getElementById("bot-count");
@@ -1377,6 +1385,7 @@ function zoomToTown(townName) {
 }
 
 let blockRank = [];
+let showRanks = [];
 //Find the 'Survey Blocks' geoJson layer, iterate over its blocks, build a blockRank array
 async function getBlockSpeciesRank(type='PRIORITY', limit=0) {
   return new Promise((resolve, reject) => {
@@ -1397,11 +1406,21 @@ async function getBlockSpeciesRank(type='PRIORITY', limit=0) {
               let blockData = {name:blockName,link:blockLink,type:blockType,wkt:blockGeom.wkt,centroid:blockGeom.centroid,spcCount:blockList.spcCount};
               if (!blockRank[blockList.spcCount]) {blockRank[blockList.spcCount] = {};}
               blockRank[blockList.spcCount][blockLink]=blockData;
+              
+              let blockOwnr = '';
+              if (sheetSignUps[blockLink]) {
+                for (const name of sheetSignUps[blockLink])
+                blockOwnr += `${name.first} ${name.last} on ${name.date.split(' ')[0]}|`;
+              }
+              //to use this for download CSV, we must create an array of objects without setting a key for each object
+              showRanks.push({name:blockName,link:blockLink,type:blockType,spcCount:blockList.spcCount,adoptedBy:blockOwnr});
             }
             i++;
             if ((i>=arrLayer.length || (limit && i>=limit)) && !exit) {
               console.log('getBlockSpeciesRank Exit Value:', i);
               exit = 1;
+              set('showRanks_'+dateNow(), showRanks);
+              set('blockRank_'+dateNow(), blockRank);
               resolve(blockRank);
             }
           })
@@ -1457,6 +1476,21 @@ function addBlockSpeciesRank(obj) {
     LayerToFront('Survey Blocks');
   }
 }
+async function downloadBlockRank(type=0) {
+  let ranks = await get('showRanks_'+dateNow());
+  if (!ranks || !Object.keys(ranks).length) {console.log('showRanks Array is empty'); return;}
+  //if (type) { //json-download
+    console.log('JSON Download:', ranks);
+    var jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ranks));
+    createHtmlDownloadData(jsonStr, `${dateNow()}_vba2_block_rank.json`);
+  //} else { //csv-download
+    var data = jsonToCsv(ranks);
+    console.log('downloadBockRank CSV download:', data);
+    var csvStr = "data:text/csv;charset=utf-8," + encodeURIComponent(data);
+    createHtmlDownloadData(csvStr, `${dateNow()}_vba2_block_rank.csv`);
+  //}
+}
+
 async function getFeatureGeom(feature) {
   let cdts = feature.geometry.coordinates[0][0];
   let gWkt = 'POLYGON((';
