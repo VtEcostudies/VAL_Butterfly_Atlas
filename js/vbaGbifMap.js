@@ -4,15 +4,16 @@
 - How to pass parameters to a google form: https://support.google.com/a/users/answer/9308781?hl=en
 - How to implement geojson-vt with Leaflet: https://stackoverflow.com/questions/41223239/how-to-improve-performance-on-inserting-a-lot-of-features-into-a-map-with-leafle
 */
+import { getBlockSpeciesListVT } from './vbaUtils.js';
 import { occInfo, getOccsByFilters, getOccsFromFile, getGbifDatasetInfo, gadmGids, butterflyKeys } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
 import { fetchJsonFile, parseCanonicalFromScientific, jsonToCsv, dateNow, timeNow, timeStamp, createHtmlDownloadData } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { getSheetSignups, getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
-import { checklistVernacularNames } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
+import { datasetKeys, getChecklistVernaculars } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { getLatLngCenter } from './geoPointsToCentroid.js';
-import { getBlockSpeciesListVT } from './vbaUtils.js';
 import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
 
+var checklistVernacularNames = await getChecklistVernaculars(datasetKeys["chkVtb1"]);
 var sheetVernacularNames = await getSheetVernaculars();
 
 var vtCenter = [43.916944, -72.668056]; //VT geo center, downtown Randolph

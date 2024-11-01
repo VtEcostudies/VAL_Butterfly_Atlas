@@ -22,6 +22,6 @@ export async function getWikiPage(searchTerm=false) {
     } catch (err) {
         err.query = enc;
         console.log(`getWikiPage(${searchTerm}) ERROR:`, err);
-        throw new Error(err)
+        throw err
     }
 }

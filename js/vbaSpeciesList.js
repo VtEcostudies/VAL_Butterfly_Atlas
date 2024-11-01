@@ -1,13 +1,13 @@
+import { getBlockSpeciesListVT } from './vbaUtils.js';
 import { getOccsByFilters } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js'
 import { parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { getSheetVernaculars } from '../VAL_Web_Utilities/js/fetchGoogleSheetsData.js';
-import { checklistVtButterflies, checklistVernacularNames, getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
+import { getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
 import { fetchInatGbifDatasetInfo, fetchEbutGbifDatasetInfo, datasetKeys, gbifDatasetUrl } from "../VAL_Web_Utilities/js/fetchGbifDataset.js";
 import { init, draw, update } from './doubleSlider.js';
 import { getInatSpecies } from '../VAL_Web_Utilities/js/inatSpeciesData.js';
 import { tableSortHeavy } from '../VAL_Web_Utilities/js/tableSortHeavy.js';
-import { getBlockSpeciesListVT } from './vbaUtils.js';
 
 var siteName = 'vtButterflies';
 var homeUrl;
@@ -18,9 +18,6 @@ var profileUrl;
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
 let vtNameIndex = {};
-for (const spc of checklistVtButterflies.results) {
-    vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
-}
 */
 const objUrlParams = new URLSearchParams(window.location.search);
 const gadmGid = objUrlParams.get('gadmGid');
@@ -583,9 +580,15 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                             hrefImg.target = "_blank";
                             colObj.appendChild(hrefImg);
                             hrefImg.appendChild(iconImg);
-                        } else if (att) {console.log('getInatSpecies attempt wiki', att); att=0; getWikiImg(att);}
+                        } else if (att) {
+                            console.log(`getInatSpecies NO PHOTO. Attempt wiki(${att})`); 
+                            att=0; getWikiImg(att);
+                        }
                     })
-                    inat.catch(err=> {console.log('getInatSpecies attempt wiki', att, 'ERROR', err,); if (att) {att=0; getWikiImg(att);}});
+                    inat.catch(err=> {
+                        console.error(`getInatSpecies ERROR. Attempt wiki(${att})`, 'ERROR', err,); 
+                        if (att) {att=0; getWikiImg(att);}
+                    });
                 }
                 function getWikiImg(att) {
                     let wik = getWikiPage(spcKey);
@@ -603,9 +606,15 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                             hrefImg.target = "_blank";
                             colObj.appendChild(hrefImg);
                             hrefImg.appendChild(iconImg);
-                        } else if (att) {console.log('getWikiImg attempt iNat', att); att=0; getInatImg(att);}
+                        } else if (att) {
+                            console.log(`getWikiImg NO PHOTO. Attempt iNat(${att})`); 
+                            att=0; getInatImg(att);
+                        }
                     })
-                    wik.catch(err => {console.log('getWikiPage attempt iNat', att, 'ERROR', err); if (att) {att=0; getInatImg(att);}})
+                    wik.catch(err => {
+                        console.error(`getWikiPage ERROR.  Attempt iNat(${att})`, 'ERROR', err); 
+                        if (att) {att=0; getInatImg(att);}
+                    })
                 }
                 break;
             case 'scientificName':

@@ -1,14 +1,11 @@
 import { getOccsByFilters } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
 import { parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
-import { checklistVtButterflies, checklistVernacularNames, getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
+import { datasetKeys, getGbifSpeciesByDataset, getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
+import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
 
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
-let vtNameIndex = {};
-for (const spc of checklistVtButterflies.results) {
-    vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
-}
 
 export async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
     let page = {};
@@ -23,7 +20,6 @@ export async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years
       if (page.endOfRecords || off>max) {page.results = results; return page;}
     } while (!page.endOfRecords && off<max);
 }  
-
 //Object keys from a species list are different from keys from an occurrence search...
 function setDisplayObj(tax2Use, spc) {
     return {
@@ -47,16 +43,36 @@ function setDisplayObj(tax2Use, spc) {
     }
 }
 
+let vtChecklist = false;
+let vtNameIndex = false;
+
 export async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, years=false) {
+    let vtChecklist = await get('checkList_vtb1');
+    console.log('get list from storage:', vtChecklist);
+    if (!vtChecklist) {
+        let list = await getGbifSpeciesByDataset(datasetKeys["chkVtb1"]); 
+        vtChecklist = list.results;
+    }
+    console.log('vbaUtils.js=>getBlockSpeciesListVT=>checklistVtButterflies', vtChecklist);
+    if (!vtNameIndex) {
+        vtNameIndex = {}; //must init object
+        for await (const spc of vtChecklist) {
+            vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
+        }
+    }
+    console.log('vbaUtils.js=>getBlockSpeciesListVT=>vtNameIndex', vtNameIndex);
+    //check storage for occurrences already fetched for dataset/block/taxonKeys/years
+    let storageName = `${dataset}_${gWkt}_${tKeys}_${years}`;
+    let blockYearsList = await get(storageName);
+    if (blockYearsList) {console.log(`vbaUtils.js=>getBlockSpeciesListVT=>getFromStorage(${storageName})`, blockYearsList); return blockYearsList;}
     if (!dataset && !tKeys) {tKeys = butterflyKeys;} //don't allow unconstrained queries
     //console.log('vbaSpeciesList=>getBlockSpeciesListVT: dataset:', dataset, 'tKeys:', tKeys, years, gWkt);
     let occs = await getBlockOccs(dataset, gWkt, tKeys, years);
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
-    //console.log('vbaSpeciesList=>getBlockSpeciesListVT: block:', block, 'occ count:', arrOccs.length, 'results:', arrOccs);
+    //console.log('vbaSpeciesList=>getBlockSpeciesListVT:', 'occ count:', arrOccs.length, 'results:', arrOccs);
     for (var i=0; i<arrOccs.length; i++) {
         let occ = arrOccs[i];
-
         let sciFull = occ.scientificName;
         let sciName = parseCanonicalFromScientific(occ, 'scientificName');
         let canName = sciName;
@@ -82,28 +98,31 @@ export async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=fal
             spc = vtNameIndex[accName];
             spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
         } else {
-            //console.log('NEITHER FOUND - SOURCE', sciName, accName, 'using Occ:', occ);
             tax2Use = accName;
             taxFrom = 'GBIF Backbone Accepted';
             spc = occ;
             spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
-            console.log('NEITHER FOUND - RESULT', sciName, accName, 'using Occ:', occ, 'leaving spc:', spc);
+            console.log('NEITHER FOUND - RESULT', sciName, accName, 'using species from Occurrence:', occ);
         }
 
         // Substitute accepted name for synonym if it exists
         if (spc.synonym && spc.accepted) {
             let accSynN = parseCanonicalFromScientific(spc, 'accepted', 'rank');
-            console.log('SYNONYM IN VT INDEX', tax2Use, spc, 'ACCEPTED:', accSynN, vtNameIndex[accSynN]);
-            tax2Use = accSynN;
-            spc = vtNameIndex[accSynN]; //we assume this is always valid
-            taxFrom = 'VT Butterflies <- GBIF Synonym';
-            spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
+            if (vtNameIndex[accSynN]) {
+                console.log('SYNONYM IN VT INDEX', tax2Use, 'WITH ACCEPTED NAME:', accSynN, `FOUND IN VT CHECKLIST`); //vtNameIndex[accSynN]);
+                tax2Use = accSynN;
+                spc = vtNameIndex[accSynN]; //we assume this is always valid
+                taxFrom = 'VT Butterflies <- GBIF Synonym';
+                spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
+            } else {
+                console.log(`SYNONYM IN VT INDEX`, tax2Use, `WITH ACCEPTED NAME:`, accSynN, `NOT FOUND IN VT CHECKLIST`);
+            }
         }
 
         // Substitute SPECIES for SUBSPECIES if it exists
         if ('SUBSPECIES'==spc.rank) {
-            console.log('SUBSPECIES:', tax2Use, spc); 
             if (spc.species) {
+                console.log('SUBSTITUTE SPECIES FOR SUBSPECIES:', tax2Use, spc.key, spc.species); 
                 let subspKey = spc.key;
                 tax2Use = spc.species;
                 spc = vtNameIndex[tax2Use];
@@ -141,14 +160,16 @@ export async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=fal
     //we added records ranked GENUS, above. Now loop over the publishable object and remove GENUS records represented by SPECIES
     for (const key in objSpcs) {
         if ('GENUS' == objSpcs[key].taxonRank && objGnus[key]) {
-            console.log('DELETE GENUS', key, objGnus[key], objSpcs[key])
+            console.log('DELETE GENUS', key);//, objGnus[key], objSpcs[key])
             delete objSpcs[key];
         }
     }
-    return {
+    let objRes = {
         'occCount': arrOccs.length,
         'spcCount': Object.keys(objSpcs).length,
         'objSpcs': objSpcs, 
         'query': occs.query
-    };
+        };
+    set(storageName, objRes);
+    return objRes;
 }
