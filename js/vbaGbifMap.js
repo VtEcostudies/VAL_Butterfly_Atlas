@@ -15,6 +15,9 @@ import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from '
 
 var checklistVernacularNames = await getChecklistVernaculars(datasetKeys["chkVtb1"]);
 var sheetVernacularNames = await getSheetVernaculars();
+const urlParams = new URLSearchParams(window.location.search);
+const admin = urlParams.get('admin');
+const mapOcc = urlParams.get('mapOcc');
 
 var vtCenter = [43.916944, -72.668056]; //VT geo center, downtown Randolph
 var vtAltCtr = [43.858297, -72.446594]; //VT border center for the speciespage view, where px bounds are small and map is zoomed to fit
@@ -44,6 +47,8 @@ var townLayer = false;
 var baseMapDefault = null;
 var abortData = false;
 var eleWait = document.getElementById("wait-overlay");
+var eleText = document.getElementById("wait-text");
+var eleBort = document.getElementById("abortData");
 var eleMapLabs = [document.getElementById("mapInfo1"),document.getElementById("mapInfo2"),document.getElementById("mapInfo3")];
 var geoJsonData = false;
 var bindPopups = false;
@@ -891,12 +896,29 @@ function SetEachPointRadius(radius = cmRadius) {
   });
 */
 }
+function showMapOccurrences() {
+  if (document.getElementById("getVtb1")) {document.getElementById("getVtb1").hidden = false;}
+  if (document.getElementById("getVtb2")) {document.getElementById("getVtb2").hidden = false;}
+  if (document.getElementById("getVba1")) {document.getElementById("getVba1").hidden = false;}
+  if (document.getElementById("getVba2")) {document.getElementById("getVba2").hidden = false;}
+}
+
+function showAdminFeatures() {
+  if (document.getElementById("getRank")) {document.getElementById("getRank").hidden = false;}
+  if (document.getElementById("dldRank")) {document.getElementById("dldRank").hidden = false;}
+  if (document.getElementById("dldData")) {document.getElementById("dldData").hidden = false;}
+  if (document.getElementById("shoWait")) {document.getElementById("shoWait").hidden = false;}
+  if (document.getElementById("rank-wrap")) {document.getElementById("rank-wrap").hidden = false;}
+}
 
 //standalone module usage
 function initGbifStandalone(layerPath=false, layerName, layerId) {
     addMap();
     addMapCallbacks();
     if (!boundaryLayerControl) {addBoundaries(layerPath, layerName, layerId);}
+    if (admin) {showAdminFeatures();}
+    if (mapOcc) {showMapOccurrences();}
+
 }
 
 /*
@@ -1066,10 +1088,6 @@ function addMapCallbacks() {
         console.log(`Map Center: ${valMap.getCenter()}`);
     });
 }
-function abortDataLoad() {
-  console.log('abortDataLoad request received.');
-  abortData = true;
-}
 if (document.getElementById("zoomVT")) {
   document.getElementById("zoomVT").addEventListener("click", async () => {
     eleWait.style.display = 'block';
@@ -1212,6 +1230,7 @@ if (document.getElementById("clearData")) {
 }
 if (document.getElementById("abortData")) {
   document.getElementById("abortData").addEventListener("click", () => {
+      console.log('Abort Data Load button clicked.');
       abortData = true;
   });
 }
@@ -1227,24 +1246,44 @@ if (document.getElementById("getSign")) {
 if (document.getElementById("getRank")) {
   document.getElementById("getRank").addEventListener("click", async () => {
     get('blockRank_'+dateNow()).then(ranks => {
+      if ('undefined' == ranks) {ranks = [];}
       console.log(`getRank.click=>get(blockRank_${dateNow()}):`, ranks);
+      let more = false;
       if (ranks && ranks.length) {
         blockRank = ranks;
         listBlockSpeciesRank(ranks, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
-        alert(`Blocks already ranked for today's date: ${dateNow()}.`);
-      } else {
+        more = confirm(`${ranks.length} blocks already ranked for today's date: ${dateNow()}. Load more?`);
+      }
+      if (!ranks || !ranks.length || more) {
         eleWait.style.display = 'block';
         getBlockSpeciesRank(false).then(bRank => {
           listBlockSpeciesRank(bRank, eleBot?eleBot.value:40, eleTop?eleTop.value:117);
           eleWait.style.display = 'none';
+        }).catch(err => {
+          console.log('vbaGbifMap.js=>getBlockSpeciesRank ERROR', err);
         })
       } 
     })
 });
 }
+if (document.getElementById("shoWait")) {
+  document.getElementById("shoWait").addEventListener("click", async () => {
+    showWait();
+  });
+}
+if (document.getElementById("wait-icon")) {
+  document.getElementById("wait-icon").addEventListener("click", async () => {
+    hideWait()
+  });
+}
 if (document.getElementById("dldRank")) {
   document.getElementById("dldRank").addEventListener("click", async () => {
     downloadBlockRank();
+  });
+}
+if (document.getElementById("dldData")) {
+  document.getElementById("dldData").addEventListener("click", async () => {
+    downloadBlockData();
   });
 }
 let eleBot = document.getElementById("bot-count");
@@ -1269,7 +1308,6 @@ if (eleData) {
 $('#rank-wrap').on('click dblclick', function(e) {
   e.stopImmediatePropagation();
 });
-
 function blockLinkFromBlockName(name) {
   let link = name.replace(/( - )|\s+/g,'').toLowerCase();
   return link;
@@ -1391,50 +1429,95 @@ let blockRank = [];
 let showRanks = [];
 //Find the 'Survey Blocks' geoJson layer, iterate over its blocks, build a blockRank array
 async function getBlockSpeciesRank(type='PRIORITY', limit=0) {
-  return new Promise((resolve, reject) => {
-    try {
-      geoGroup.eachLayer(async layer => {
-        if ('Survey Blocks'==layer.options.name) {
-          let arrLayer = layer.getLayers();
-          console.log('eachLayer', arrLayer, arrLayer.length);
-          let i = 0; let exit = 0;
-          blockRank = [];
-          layer.eachLayer(async subLay => {
-            let blockType = subLay.feature.properties.BLOCK_TYPE;
-            let blockName = subLay.feature.properties.BLOCKNAME;
-            if ((!type || type == blockType) && (!limit || i<limit) && !exit) {
-              let blockLink = blockLinkFromBlockName(blockName);
-              let blockGeom = await getFeatureGeom(subLay.feature);
-              let blockList = await getBlockSpeciesListVT(false, blockGeom.wkt, butterflyKeys, '2023,2027');
-              let blockData = {name:blockName,link:blockLink,type:blockType,wkt:blockGeom.wkt,centroid:blockGeom.centroid,spcCount:blockList.spcCount};
-              if (!blockRank[blockList.spcCount]) {blockRank[blockList.spcCount] = {};}
-              blockRank[blockList.spcCount][blockLink]=blockData;
-              
-              let blockOwnr = '';
-              if (sheetSignUps[blockLink]) {
-                for (const name of sheetSignUps[blockLink])
-                blockOwnr += `${name.first} ${name.last} on ${name.date.split(' ')[0]}|`;
-              }
-              //to use this for download CSV, we must create an array of objects without setting a key for each object
-              showRanks.push({name:blockName,link:blockLink,type:blockType,spcCount:blockList.spcCount,adoptedBy:blockOwnr});
-            }
-            i++;
-            if ((i>=arrLayer.length || (limit && i>=limit)) && !exit) {
-              console.log('getBlockSpeciesRank Exit Value:', i);
-              exit = 1;
-              set('showRanks_'+dateNow(), showRanks);
-              set('blockRank_'+dateNow(), blockRank);
-              resolve(blockRank);
-            }
-          })
+  hideWait();
+  try {
+    geoGroup.eachLayer(async layer => { //iterate over geoJson layers - blocks, towns, counties, etc.
+      if ('Survey Blocks'==layer.options.name) {
+        let arrBlox = layer.getLayers();
+        console.log('eachLayer', arrBlox.length);
+        blockRank = [];
+        try {
+          await getBlox(arrBlox, 0, type, limit)
+        } catch(err) {
+          console.log('vbaGbifMap.js=>getBlockSpeciesRank=>getBlox ERROR', err);
+          throw err;
         }
-      })
-    } catch(err) {
-      exit = 1;
-      reject(err);
-    }
-  })
+        return blockRank;
+      }
+    })
+  } catch(err) {
+    console.log('vbaGbifMap.js=>getBlockSpeciesRank=>eachLayer ERROR', err);
+    throw err;
+  }
 }
+function showWait(msg=null, showAbort=true) {
+  console.log('showWait', msg);
+  eleWait.style.display = 'block';
+  if (msg) {eleText.innerHTML = msg; eleText.style.fontSize='24px'; eleText.style.width='90%';} 
+  else {eleText.innerHTML = 'Loading data...'; eleText.style.fontSize='36px'; eleText.style.width='20%';}
+  if (showAbort) {eleBort.hidden = false} 
+  else {eleBort.hidden = true}
+}
+function hideWait() {
+  console.log('hideWait');
+  eleWait.style.display = 'none';
+}
+/*
+  Iterate over the block feature array and retrieve block species lists from occurrences
+*/
+async function getBlox(blox, start=0, type=null, limit=0) {
+  showWait();
+  let i;
+  try {
+    for (i=start; i<blox.length; i++) {
+      let subLay = blox[i];
+      let blockType = subLay.feature.properties.BLOCK_TYPE;
+      let blockName = subLay.feature.properties.BLOCKNAME;
+      if (!abortData && (!type || type == blockType) && (!limit || i<limit)) {
+        let blockLink = blockLinkFromBlockName(blockName);
+        let blockGeom = await getFeatureGeom(subLay.feature);
+        let blockList = await getBlockSpeciesListVT(blockName, false, blockGeom.wkt, butterflyKeys, '2023,2027');
+        let blockData = {name:blockName,link:blockLink,type:blockType,wkt:blockGeom.wkt,centroid:blockGeom.centroid,spcCount:blockList.spcCount};
+        if (!blockRank[blockList.spcCount]) {blockRank[blockList.spcCount] = {};}
+        blockRank[blockList.spcCount][blockLink]=blockData;
+        let blockOwnr = '';
+        if (sheetSignUps[blockLink]) {
+          for (const name of sheetSignUps[blockLink])
+          blockOwnr += `${name.first} ${name.last} on ${name.date.split(' ')[0]}|`;
+        }
+        //to use this for download CSV, we must create an array of objects without setting a key for each object
+        showRanks.push({name:blockName,link:blockLink,type:blockType,spcCount:blockList.spcCount,adoptedBy:blockOwnr});
+        set('showRanks_'+dateNow(), showRanks);
+        set('blockRank_'+dateNow(), blockRank);
+      }
+      if (i>=blox.length || (limit && i>=limit)) {
+        hideWait();
+        console.log('getBlockSpeciesRank Exit Value:', i);
+        return blockRank;
+      }
+      if (abortData) {hideWait(); break;}
+    }
+  } catch(err) {
+    hideWait();
+    console.log('vbaGbifMap.js=>getBlox=>for await subLay ERROR', err);
+    if (err.message.includes('429')) {
+      let msg=`${i}/${blox.length} blocks processed. WAITING 10 SECONDS BEFORE RETRYING getBlox...`;
+      console.log(msg);
+      showWait(msg);
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      getBlox(blox, i, type, limit);
+    }
+    /*
+    if (confirm(`Error getting block species rank data: ${err.message}. ${i} blocks processed. Continue?`)) {
+      getBlox(blox, i, type, limit);
+    } 
+    */
+    else {
+      throw err;
+    }
+  }
+}
+
 function listBlockSpeciesRank(ranks, bot=40, top=113) {
   let tbl = document.getElementById("rank-data");
   tbl.innerHTML = '';
@@ -1485,16 +1568,47 @@ async function downloadBlockRank(type=0) {
     console.log('showRanks Array is empty'); 
     return alert("Please run 'Rank Blocks' and let it finish before downloading block ranks.");
   }
-  //if (type) { //json-download
+  if (type) { //json-download
     console.log('JSON Download:', ranks);
     var jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ranks));
     createHtmlDownloadData(jsonStr, `${dateNow()}_vba2_block_rank.json`);
-  //} else { //csv-download
+  } else { //csv-download
     var data = jsonToCsv(ranks);
-    console.log('downloadBockRank CSV download:', data);
+    console.log('downloadBockRank CSV download:', Object.keys(ranks).length, data);
     var csvStr = "data:text/csv;charset=utf-8," + encodeURIComponent(data);
     createHtmlDownloadData(csvStr, `${dateNow()}_vba2_block_rank.csv`);
-  //}
+  }
+}
+async function downloadBlockData(type=1) {
+  let blox = await keys(); //get all localStorage entries
+  //console.log('typeof blox:', typeof blox, blox);
+  // Remove keys not specific block data
+  blox = Object.fromEntries(
+    Object.entries(blox).filter(([key, val]) => {
+      return !val.startsWith('blockRank') && !val.startsWith('checkList') && !val.startsWith('showRanks')
+    })
+  );
+  let json = blox;
+  for (const key in blox) { //these are numeric keys returned by keys()
+    let bKey = { ...blox[key].split('_') }
+    json[key] = { ...bKey, ...await get(blox[key]) }; //retrieve each block data object by its key
+    console.log(key, bKey, json[key]);
+  }
+  //console.log('downloadBlockData filtered as object:', Object.keys(blox).length, blox);
+  if (!json || !Object.keys(json).length) {
+    console.log('indexedDB keys() is empty'); 
+    return alert("Please run 'Rank Blocks' and let it finish before downloading block data.");
+  }
+  if (type) { //json-download
+    console.log('JSON Download:', json);
+    var jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json));
+    createHtmlDownloadData(jsonStr, `${dateNow()}_vba2_block_data.json`);
+  } else { //csv-download
+    var data = jsonToCsv(json);
+    console.log('downloadBockData CSV download:', Object.keys(json).length, data);
+    var csvStr = "data:text/csv;charset=utf-8," + encodeURIComponent(data);
+    createHtmlDownloadData(csvStr, `${dateNow()}_vba2_block_data.csv`);
+  }
 }
 
 async function getFeatureGeom(feature) {
@@ -1504,7 +1618,7 @@ async function getFeatureGeom(feature) {
   //console.log('feature', feature);
   //for (var i=0; i<cdts.length; i++) { //GBIF changed their WKT parser to only handle anti-clockwise POLYGON vertices. Reverse order:
   for (var i=cdts.length-1; i>=0; i--) {
-      console.log(`vbaGbifMap.js=>onGeoBoundaryFeature=>click(): feat.geom.cdts[0][0][${i}]`, cdts[i]);
+      //console.log(`vbaGbifMap.js=>onGeoBoundaryFeature=>click(): feat.geom.cdts[0][0][${i}]`, cdts[i]);
     gWkt += `${cdts[i][0]} ${cdts[i][1]},`;
   }
   gWkt = gWkt.slice(0,-1) + '))';

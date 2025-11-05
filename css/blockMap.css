@@ -215,9 +215,35 @@ html, body, #mapid, .row-fluid{
 }
 
 #wait-icon {
-  display: inline-block;
+  display: block;
+  position: relative;
+  z-index: 90001;
   margin-top: 200px;
   color: blue;
+  font-size: 60px;
+}
+
+#wait-text {
+  display: inline-block;
+  position: relative;
+  z-index: 90001;
+  margin-top: 20px;
+  color: blue;
+  font-size: 36px;
+  width: 20%;
+  height: 60px;
+  background-color: transparent;
+}
+
+#abortData {
+  display: block;
+  position: relative;
+  z-index: 90001;
+  margin-top: 20px;
+  color: blue;
+  font-size: 40px;
+  width: 20%;
+  left:40%;
 }
 
 .button-as-link {

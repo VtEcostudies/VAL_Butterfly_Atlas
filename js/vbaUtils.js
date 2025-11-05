@@ -1,5 +1,5 @@
 import { getOccsByFilters } from '../VAL_Web_Utilities/js/fetchGbifOccs.js';
-import { parseCanonicalFromScientific } from '../VAL_Web_Utilities/js/commonUtilities.js';
+import { parseCanonicalFromScientific, dateNow } from '../VAL_Web_Utilities/js/commonUtilities.js';
 import { datasetKeys, getGbifSpeciesByDataset, getParentRank } from '../VAL_Web_Utilities/js/fetchGbifSpecies.js'; //file gets 2 lists on load
 import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
 
@@ -19,7 +19,8 @@ export async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years
       off += lim;
       if (page.endOfRecords || off>max) {page.results = results; return page;}
     } while (!page.endOfRecords && off<max);
-}  
+}
+
 //Object keys from a species list are different from keys from an occurrence search...
 function setDisplayObj(tax2Use, spc) {
     return {
@@ -46,28 +47,42 @@ function setDisplayObj(tax2Use, spc) {
 let vtChecklist = false;
 let vtNameIndex = false;
 
-export async function getBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false, years=false) {
-    let vtChecklist = await get('checkList_vtb1');
-    console.log('get list from storage:', vtChecklist);
+export async function getBlockSpeciesListVT(blockName, dataset=false, gWkt=false, tKeys=false, years=false) {
+    let vtChecklist = await get('checkList_vba');
+    //console.log('get list from storage:', vtChecklist);
     if (!vtChecklist) {
         let list = await getGbifSpeciesByDataset(datasetKeys["chkVtb1"]); 
         vtChecklist = list.results;
+        console.log('vbaUtils.js=>getBlockSpeciesListVT=>checklistVtButterflies', vtChecklist);
+        set('checkList_vba', vtChecklist);
     }
-    console.log('vbaUtils.js=>getBlockSpeciesListVT=>checklistVtButterflies', vtChecklist);
+    //console.log('vbaUtils.js=>getBlockSpeciesListVT=>checklistVtButterflies', vtChecklist);
     if (!vtNameIndex) {
         vtNameIndex = {}; //must init object
         for await (const spc of vtChecklist) {
             vtNameIndex[spc.canonicalName] = spc; //VT Butterflies Species-list indexed by name
         }
     }
-    console.log('vbaUtils.js=>getBlockSpeciesListVT=>vtNameIndex', vtNameIndex);
+    //console.log('vbaUtils.js=>getBlockSpeciesListVT=>vtNameIndex', vtNameIndex);
     //check storage for occurrences already fetched for dataset/block/taxonKeys/years
-    let storageName = `${dataset}_${gWkt}_${tKeys}_${years}`;
+    let storageName = `${blockName}_${dateNow()}`;
+    if (dataset) storageName += `_${dataset}`;
+    if (tKeys) storageName += `_${tKeys}`;
+    if (years) storageName += `_${years}`;
     let blockYearsList = await get(storageName);
-    if (blockYearsList) {console.log(`vbaUtils.js=>getBlockSpeciesListVT=>getFromStorage(${storageName})`, blockYearsList); return blockYearsList;}
+    if (blockYearsList) {
+      //console.log(`vbaUtils.js=>getBlockSpeciesListVT=>getFromStorage(${storageName})`, blockYearsList); 
+      return blockYearsList;
+    }
     if (!dataset && !tKeys) {tKeys = butterflyKeys;} //don't allow unconstrained queries
     //console.log('vbaSpeciesList=>getBlockSpeciesListVT: dataset:', dataset, 'tKeys:', tKeys, years, gWkt);
-    let occs = await getBlockOccs(dataset, gWkt, tKeys, years);
+    let occs = [];
+    try {
+      occs = await getBlockOccs(dataset, gWkt, tKeys, years);
+    } catch(err) {
+      console.error('vbaUtils.js=>getBlockSpeciesListVT=>getBlockOccs ERROR:', err);
+      throw err;
+    }
     let objSpcs = {}; let objGnus = {};
     let arrOccs = occs.results;
     //console.log('vbaSpeciesList=>getBlockSpeciesListVT:', 'occ count:', arrOccs.length, 'results:', arrOccs);

@@ -38,7 +38,9 @@
         -->
         <div id="map-wrapper">
             <div id="wait-overlay">
-                <i id="wait-icon" class="fa fa-spinner fa-spin" style="font-size:60px;"></i>
+                <i id="wait-icon" class="fa fa-spinner fa-spin"></i>
+                <label id="wait-text">Loading Data...</label>
+                <button id="abortData">Abort</button>
             </div>
             <div id="mapid">
                 <div id="lbl-wrapper">
@@ -61,13 +63,15 @@
                         <label for="iconMarkers" style="vertical-align:middle;">IconMarkers</label>
                     </div>
                     -->
-                    <button id="getVtb1" class="map-button">Obs <2002</button>
-                    <button id="getVtb2" class="map-button">Obs 2008-22</button>
-                    <button id="getVba1" class="map-button">Btrfly Atlas 1</button>
-                    <button id="getVba2" class="map-button">Btrfly Atlas 2</button>
+                    <button id="getVtb1" class="map-button" hidden>Obs <2002</button>
+                    <button id="getVtb2" class="map-button" hidden>Obs 2008-22</button>
+                    <button id="getVba1" class="map-button" hidden>Btrfly Atlas 1</button>
+                    <button id="getVba2" class="map-button" hidden>Btrfly Atlas 2</button>
                     <button id="getSign" class="map-button">Get Signups</button>
-                    <button id="getRank" class="map-button">Rank Blocks</button>
-                    <button id="dldRank" class="map-button">Download Ranks</button>
+                    <button id="getRank" class="map-button" hidden>Rank Blocks</button>
+                    <button id="dldRank" class="map-button" hidden>Download Ranks</button>
+                    <button id="dldData" class="map-button" hidden>Download Data</button>
+                    <button id="shoWait" class="map-button" hidden>Show Wait</button>
                     <select id="blocks" class="map-button map-drop-down">
                         <option value="default" disabled selected>Survey Blocks...</option>
                     </select>
@@ -76,7 +80,7 @@
                     </select>
                     <label id="zoomInfo" class="map-button"></label>
                 </div>
-                <div id="rank-wrap">
+                <div id="rank-wrap" hidden>
                     <div id="rank-list">
                         <table id="rank-data"></table>
                     </div>

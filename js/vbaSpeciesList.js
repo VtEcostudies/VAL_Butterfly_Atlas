@@ -324,8 +324,8 @@ async function LocalGetBlockSpeciesListVT(dataset=false, gWkt=false, tKeys=false
     };
 }
 */
-async function wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, years) {
-    let res = await getBlockSpeciesListVT(dataset, gWkt, tKeys, years);
+async function wrapGetBlockSpeciesListVT(blockName, dataset, gWkt, tKeys, years) {
+    let res = await getBlockSpeciesListVT(blockName, dataset, gWkt, tKeys, years);
     //add the columns and columnIds to show in the table
     res.cols = {
         taxonKey:'Taxon Key',
@@ -351,9 +351,9 @@ async function wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, years) {
     return res;
 }
 
-async function compareBlockSpeciesLists(dataset=false, gWkt=false, tKeys=false, years=false, compare=false) {
-    let tres = await wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, years);
-    let cres = await wrapGetBlockSpeciesListVT(dataset, gWkt, tKeys, compare);
+async function compareBlockSpeciesLists(blockName, dataset=false, gWkt=false, tKeys=false, years=false, compare=false) {
+    let tres = await wrapGetBlockSpeciesListVT(blockName, dataset, gWkt, tKeys, years);
+    let cres = await wrapGetBlockSpeciesListVT(blockName, dataset, gWkt, tKeys, compare);
     let trgt = tres.objSpcs; 
     for (const key in cres.objSpcs) { //remove entries from target that are also found in compare
         if (trgt[key]) {
@@ -512,11 +512,17 @@ async function delTableWait() {
     waitRow.remove();
 }
 
-async function addGBIFLink(geometry, taxonKeys, count) {
+/*
+  Add link to GBIF occurrences for the current query.
+  NOTES: gbif-year param is used to set year filter in GBIF explorer. Wordpress uses the 'year'
+  param internally. Our GBIF widget traps gbif-year and converts to 'year' downstream of the WP
+  page-load. Subsequent page reloads will fail.
+*/
+async function addGBIFLink(geometry, taxonKeys, years, count) {
     let eleGBIF = document.getElementById("gbifLink");
     //eleGBIF.href = `https://www.gbif.org/occurrence/search?${taxonKeys}&geometry=${geometry}`;
     //eleGBIF.href = `${exploreUrl}?siteName=${siteName}&view=MAP&${taxonKeys}&geometry=${geometry}`;
-    eleGBIF.href = `${exploreUrl}?siteName=${siteName}&view=MAP&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
+    eleGBIF.href = `${exploreUrl}?siteName=${siteName}&view=MAP&gbif-year=${years}&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
     eleGBIF.target = "_blank";
     eleGBIF.innerText = `GBIF Occurrences (${count})`;
 }
@@ -731,11 +737,11 @@ async function loadPage(block, geometry, taxonKeyA, years=false, compare=false) 
     }
     let spcs = {}
     if (compare) {
-        spcs = await compareBlockSpeciesLists(dataset, geometry, taxonKeys, years, compare);
+        spcs = await compareBlockSpeciesLists(block, dataset, geometry, taxonKeys, years, compare);
     } else {
-        spcs = await wrapGetBlockSpeciesListVT(dataset, geometry, taxonKeys, years);
+        spcs = await wrapGetBlockSpeciesListVT(block, dataset, geometry, taxonKeys, years);
     }
-    await addGBIFLink(geometry, taxonKeys, spcs.occCount);
+    await addGBIFLink(geometry, taxonKeys, years, spcs.occCount);
     await addTaxaFromArr(spcs.objSpcs, spcs.cols);
     await addTableHead(spcs.cols);
     delTableWait();
