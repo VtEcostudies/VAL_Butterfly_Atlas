@@ -12,6 +12,8 @@ import { datasetKeys, getChecklistVernaculars } from '../VAL_Web_Utilities/js/fe
 import { getWikiPage } from '../VAL_Web_Utilities/js/wikiPageData.js';
 import { getLatLngCenter } from './geoPointsToCentroid.js';
 import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
+// Initialize with a dummy values in case the db was cleared
+await set('_init', true);
 
 var checklistVernacularNames = await getChecklistVernaculars(datasetKeys["chkVtb1"]);
 var sheetVernacularNames = await getSheetVernaculars();
@@ -1263,6 +1265,8 @@ if (document.getElementById("getRank")) {
           console.log('vbaGbifMap.js=>getBlockSpeciesRank ERROR', err);
         })
       } 
+    }).catch(err => {
+      console.log('vbaGbifMap.js=>get(blockRank) ERROR', err);
     })
 });
 }
@@ -1440,6 +1444,7 @@ async function getBlockSpeciesRank(type='PRIORITY', limit=0) {
           await getBlox(arrBlox, 0, type, limit)
         } catch(err) {
           console.log('vbaGbifMap.js=>getBlockSpeciesRank=>getBlox ERROR', err);
+          alert(`Error retrieving block species rank data: ${err.code} ${err.message}`);
           throw err;
         }
         return blockRank;
@@ -1506,13 +1511,7 @@ async function getBlox(blox, start=0, type=null, limit=0) {
       showWait(msg);
       await new Promise(resolve => setTimeout(resolve, 10000));
       getBlox(blox, i, type, limit);
-    }
-    /*
-    if (confirm(`Error getting block species rank data: ${err.message}. ${i} blocks processed. Continue?`)) {
-      getBlox(blox, i, type, limit);
-    } 
-    */
-    else {
+    } else {
       throw err;
     }
   }
