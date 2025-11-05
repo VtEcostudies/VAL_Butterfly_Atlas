@@ -514,9 +514,10 @@ async function delTableWait() {
 
 /*
   Add link to GBIF occurrences for the current query.
-  NOTES: gbif-year param is used to set year filter in GBIF explorer. Wordpress uses the 'year'
+  NOTE: gbif-year param is used to set year filter in GBIF explorer. Wordpress uses the 'year'
   param internally. Our GBIF widget traps gbif-year and converts to 'year' downstream of the WP
   page-load. Subsequent page reloads will fail.
+  NOTE: we don't pass taxonKeys here, becuase siteName points to Atlas config which defines taxonomic scope.
 */
 async function addGBIFLink(geometry, taxonKeys, years, count) {
     let eleGBIF = document.getElementById("gbifLink");
@@ -560,8 +561,10 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
         let rawKey = objSpc.taxonKey;
         let accKey = objSpc.acceptedTaxonKey;
         let nubKey = objSpc.nubKey;
+        let synKey = objSpc.synonymKey; //if exists?
         //console.log('key:', key);
         //console.log('fillRow', key, val, hedObj[key], hedObj[`${key}`])
+        //if (synKey) console.log('synKey', key, val, hedObj[key], spcKey, synKey, objSpc)
         if (hedObj[key]) { //filter species object through header object
         switch(key) {
             case 'image':
@@ -638,7 +641,7 @@ async function fillRow(spcKey, objSpc, objRow, rowIdx, hedObj) {
                 let rang = val ? val.split('/') : []; if (rang[1]) {console.log(`Occurrence having date range: ${val}`);}
                 let date = val ? val.split('/')[0] : false;
                 date = date ? moment(date).format('YYYY-MM-DD') : 'N/A';
-                href = `${exploreUrl}?view=MAP&gbif-year=${years}&taxonKey=${nubKey}&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
+                href = `${exploreUrl}?view=MAP&gbif-year=${years}&taxonKey=${nubKey}${synKey?'&taxonKey='+synKey:''}&geometry=${geometry}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}`;
                 colObj.innerHTML = colObj.innerHTML = `<a title="GBIF Occurrences for ${block} ${objSpc.scientificName}(${nubKey}) ${years}" href="${href}">${date}</a>`;
                 break;
             case 'occurrenceId':

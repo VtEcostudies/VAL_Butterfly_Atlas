@@ -6,6 +6,7 @@ import { get, set, del, clear, keys, entries, getMany, setMany, delMany } from '
 const butterflyKeys = 'taxon_key=6953&taxon_key=5473&taxon_key=7017&taxon_key=9417&taxon_key=5481&taxon_key=1933999';
 let showSubsp = 0; //flag to show SUBSPECIES in list (when no SPECIES parent is found, these remain...)
 let showAll = 0; //flag to show all ranks - for testing
+let useCache = 0;
 
 export async function getBlockOccs(dataset=false, gWkt=false, tKeys=false, years=false) {
     let page = {};
@@ -40,7 +41,8 @@ function setDisplayObj(tax2Use, spc) {
         'vernacularNames': spc.vernacularNames ? spc.vernacularNames : [],
         'image': false, //flag fillRow to show an image
         'eventDate': spc.eventDate,
-        'occurrenceId': spc.occurrenceId
+        'occurrenceId': spc.occurrenceId,
+        'synonymKey': spc.synKey //keep track of original synonym key, which is returned as taxonKey in occ record
     }
 }
 
@@ -70,7 +72,7 @@ export async function getBlockSpeciesListVT(blockName, dataset=false, gWkt=false
     if (tKeys) storageName += `_${tKeys}`;
     if (years) storageName += `_${years}`;
     let blockYearsList = await get(storageName);
-    if (blockYearsList) {
+    if (useCache && blockYearsList) {
       //console.log(`vbaUtils.js=>getBlockSpeciesListVT=>getFromStorage(${storageName})`, blockYearsList); 
       return blockYearsList;
     }
@@ -129,6 +131,8 @@ export async function getBlockSpeciesListVT(blockName, dataset=false, gWkt=false
                 spc = vtNameIndex[accSynN]; //we assume this is always valid
                 taxFrom = 'VT Butterflies <- GBIF Synonym';
                 spc.eventDate = evtDate; spc.occurrenceId = occ.occurrenceID; spc.taxonSource = taxFrom;
+                spc.synKey = occ.taxonKey; //keep track of original synonym key, which is returned as taxonKey in occ record
+                //console.log('SYNONYM IN VT INDEX', occ, spc);
             } else {
                 console.log(`SYNONYM IN VT INDEX`, tax2Use, `WITH ACCEPTED NAME:`, accSynN, `NOT FOUND IN VT CHECKLIST`);
             }
