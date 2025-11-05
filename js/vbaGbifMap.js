@@ -377,7 +377,7 @@ function onGeoBoundaryFeature(feature, layer) {
           }
         }
         pops += `<a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSegdid40-VdB_xtGvHt-WIEWR_TapHnbaxj-LJWObcWrS5ovg/viewform?usp=pp_url&entry.1143709545=${link}"><b>SIGN-UP</b> for ${name}</a></br></br>`;
-        pops += `<a target="_blank" href="vba_species_list.html?block=${name}&geometry=${gWkt}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}">Get <b>SPECIES LIST</b> for ${name}</a></br>`;
+        pops += `<a target="_blank" href="vba_species_list.html?block=${name}&year=2023,2027&geometry=${gWkt}&lat=${centrLat}&lon=${centrLon}&zoom=${mapZoom}">Get <b>SPECIES LIST</b> for ${name}</a></br>`;
         if (pops) {layer.bindPopup(pops).openPopup();}
       }
     });
