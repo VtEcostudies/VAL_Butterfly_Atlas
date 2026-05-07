@@ -85,7 +85,7 @@
     .sp-common { font-weight: 500; color: #e8ecf0; }
     .sp-sci    { font-style: italic; color: #7a9ab8; font-size: 11.5px; }
 
-    /* ── Legend ── */
+    /* ── Legend / Filter ── */
     #legend {
       padding: 12px 16px; border-top: 1px solid #2d3a4a; background: #0f1623;
     }
@@ -105,6 +105,22 @@
       font-size: 10px; color: #5a7a6a; margin-top: 8px;
       border-top: 1px solid #1e2d3d; padding-top: 6px; line-height: 1.5;
     }
+    .filter-row {
+      cursor: pointer; padding: 3px 4px; border-radius: 4px;
+      transition: background 0.15s; user-select: none;
+    }
+    .filter-row:hover { background: rgba(255,255,255,0.06); }
+    .filter-row.inactive { opacity: 0.38; }
+    .filter-row input[type=checkbox] {
+      accent-color: #5ab4e8; cursor: pointer;
+      width: 13px; height: 13px; flex-shrink: 0;
+    }
+    .filter-btn {
+      font-size: 10px; padding: 2px 7px; border-radius: 3px;
+      border: 1px solid #2d3a4a; background: #1a2a3a;
+      color: #8a9ab0; cursor: pointer; transition: background 0.15s;
+    }
+    .filter-btn:hover { background: #2d3a4a; color: #c8d4e0; }
 
     /* ── Stats bar ── */
     #stats {
@@ -157,28 +173,39 @@
     </div>
 
     <div id="legend">
-      <h3>Species Count</h3>
-      <div class="legend-row">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <h3 style="margin:0">Filter by Category</h3>
+        <div style="display:flex; gap:5px;">
+          <button class="filter-btn" onclick="setAllFilters(true)">All</button>
+          <button class="filter-btn" onclick="setAllFilters(false)">None</button>
+        </div>
+      </div>
+      <label class="legend-row filter-row" data-cat="blue">
+        <input type="checkbox" class="filter-cb" value="blue" checked>
         <div class="legend-swatch" style="background:#0072B2"></div>
         <span>&ge; 40 species</span>
-      </div>
-      <div class="legend-row">
+      </label>
+      <label class="legend-row filter-row" data-cat="teal">
+        <input type="checkbox" class="filter-cb" value="teal" checked>
         <div class="legend-swatch" style="background:#009E73"></div>
         <span>30&ndash;39 species</span>
-      </div>
-      <div class="legend-row">
+      </label>
+      <label class="legend-row filter-row" data-cat="amber">
+        <input type="checkbox" class="filter-cb" value="amber" checked>
         <div class="legend-swatch" style="background:#E69F00"></div>
         <span>20&ndash;29 species</span>
-      </div>
-      <div class="legend-row">
+      </label>
+      <label class="legend-row filter-row" data-cat="verm">
+        <input type="checkbox" class="filter-cb" value="verm" checked>
         <div class="legend-swatch" style="background:#D55E00"></div>
         <span>&lt; 20 species</span>
-      </div>
-      <div class="legend-row">
+      </label>
+      <label class="legend-row filter-row" data-cat="none">
+        <input type="checkbox" class="filter-cb" value="none" checked>
         <div class="legend-swatch" style="background:#666677; border-color:#555"></div>
         <span>No data</span>
-      </div>
-      <div class="cb-note">&#9679; Okabe-Ito palette &mdash; safe for deuteranopia, protanopia &amp; tritanopia</div>
+      </label>
+      <div class="cb-note">&#9679; Okabe-Ito palette &mdash; safe for deuteranopia, protanopia &amp; tritanopia<br>&#9632; Click categories above to show/hide blocks</div>
     </div>
   </div>
 </div>
@@ -313,6 +340,49 @@ function resetPlaceholder() {
     </div>`;
 }
 
+// ── Category helper ──────────────────────────────────────────────
+function blockCat(n) {
+  if (n === 0)  return 'none';
+  if (n >= 40)  return 'blue';
+  if (n >= 30)  return 'teal';
+  if (n >= 20)  return 'amber';
+  return 'verm';
+}
+
+// ── Filter state ──────────────────────────────────────────────────
+const activeFilters = new Set(['blue','teal','amber','verm','none']);
+
+function layerStyleFor(layer, forceActive) {
+  const n   = layer.feature.properties.count;
+  const st  = blockStyle(n);
+  const cat = blockCat(n);
+  const vis = forceActive || activeFilters.has(cat);
+  return vis
+    ? { fillColor:st.fill, color:st.stroke, weight:1.2, opacity:0.95, fillOpacity:0.7 }
+    : { fillColor:'#1e2a36', color:'#2a3540',  weight:0.6, opacity:0.4,  fillOpacity:0.18 };
+}
+
+function applyFilter() {
+  geojsonLayer.eachLayer(layer => {
+    const isActive = layer === activeLayer;
+    if (isActive) return; // keep selected block highlighted
+    layer.setStyle(layerStyleFor(layer, false));
+  });
+  // Update legend row visual state
+  document.querySelectorAll('.filter-row').forEach(row => {
+    const cat = row.dataset.cat;
+    row.classList.toggle('inactive', !activeFilters.has(cat));
+  });
+}
+
+function setAllFilters(on) {
+  document.querySelectorAll('.filter-cb').forEach(cb => {
+    cb.checked = on;
+    if (on) activeFilters.add(cb.value); else activeFilters.delete(cb.value);
+  });
+  applyFilter();
+}
+
 // ── GeoJSON layer ─────────────────────────────────────────────────
 const geojsonLayer = L.geoJSON(BLOCKS_DATA, {
   style: f => {
@@ -334,13 +404,15 @@ const geojsonLayer = L.geoJSON(BLOCKS_DATA, {
       { sticky:true, direction:'top', offset:[0,-4] });
 
     layer.on('mouseover', function() {
-      if (this !== activeLayer) this.setStyle({ weight:2.5, fillOpacity:0.88 });
+      if (this !== activeLayer && activeFilters.has(blockCat(n)))
+        this.setStyle({ weight:2.5, fillOpacity:0.88 });
     });
     layer.on('mouseout', function() {
-      if (this !== activeLayer) geojsonLayer.resetStyle(this);
+      if (this !== activeLayer) this.setStyle(layerStyleFor(this, false));
     });
     layer.on('click', function(e) {
-      if (activeLayer && activeLayer !== this) geojsonLayer.resetStyle(activeLayer);
+      if (!activeFilters.has(blockCat(n))) return; // ignore clicks on faded blocks
+      if (activeLayer && activeLayer !== this) activeLayer.setStyle(layerStyleFor(activeLayer, false));
       activeLayer = this;
       this.setStyle({ weight:3, color:'#ffffff', fillOpacity:0.92 });
       this.bringToFront();
@@ -350,8 +422,23 @@ const geojsonLayer = L.geoJSON(BLOCKS_DATA, {
   }
 }).addTo(map);
 
+// ── Filter checkbox listeners ─────────────────────────────────────
+document.querySelectorAll('.filter-cb').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.checked) activeFilters.add(cb.value);
+    else            activeFilters.delete(cb.value);
+    // Clear active block if its category is now hidden
+    if (activeLayer && !activeFilters.has(blockCat(activeLayer.feature.properties.count))) {
+      activeLayer.setStyle(layerStyleFor(activeLayer, false));
+      activeLayer = null;
+      resetPlaceholder();
+    }
+    applyFilter();
+  });
+});
+
 map.on('click', () => {
-  if (activeLayer) { geojsonLayer.resetStyle(activeLayer); activeLayer = null; }
+  if (activeLayer) { activeLayer.setStyle(layerStyleFor(activeLayer, false)); activeLayer = null; }
   resetPlaceholder();
 });
 
