@@ -91,11 +91,26 @@ PREDICATE = {
     ]
 }
 
-GBIF_API = "https://api.gbif.org/v1"
+GBIF_API    = "https://api.gbif.org/v1"
+INAT_DATASET = "50c9509d-22c7-4a22-a47d-8c48425ef4a7"   # iNaturalist Research-grade on GBIF
 
 # ══════════════════════════════════════════════════════════════════
 # Step 1: Credentials
 # ══════════════════════════════════════════════════════════════════
+def get_inat_pub_date():
+    """Fetch iNaturalist dataset publication date from GBIF dataset API."""
+    try:
+        r = requests.get(f"{GBIF_API}/dataset/{INAT_DATASET}", timeout=15)
+        r.raise_for_status()
+        desc = r.json().get("description", "")
+        m = re.search(r"Created on or before (\d{4}-\d{2}-\d{2})", desc)
+        if m:
+            return m.group(1)
+    except Exception as e:
+        print(f"  WARNING: Could not fetch iNaturalist publication date: {e}")
+    from datetime import date
+    return date.today().isoformat()   # fallback
+
 def get_credentials():
     user  = os.environ.get("GBIF_USER")     or input("GBIF username: ").strip()
     pwd   = os.environ.get("GBIF_PASSWORD") or getpass.getpass("GBIF password: ")
@@ -435,7 +450,7 @@ def rebuild_all_blocks_geojson(taxon_lookup, synonym_genus_map, sci_to_common):
 # ══════════════════════════════════════════════════════════════════
 # Step 6: Patch HTML files with new GeoJSON + updated date
 # ══════════════════════════════════════════════════════════════════
-def patch_html(html_path, geojson, data_date):
+def patch_html(html_path, geojson, data_date, inat_date=None):
     if not html_path.exists():
         print(f"  WARNING: {html_path.name} not found — skipping")
         return
@@ -446,9 +461,14 @@ def patch_html(html_path, geojson, data_date):
                   html, flags=re.DOTALL)
     html = re.sub(r"const DATA_UPDATED = '[^']+';",
                   f"const DATA_UPDATED = '{data_date}';", html)
+    if inat_date:
+        html = re.sub(r"const INAT_UPDATED = '[^']+';",
+                      f"const INAT_UPDATED = '{inat_date}';", html)
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"  {html_path.name} updated — data date: {data_date}")
+    note = f"  {html_path.name} updated — GBIF: {data_date}"
+    if inat_date: note += f"  iNat: {inat_date}"
+    print(note)
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -483,18 +503,23 @@ if __name__ == "__main__":
     except Exception:
         pass
 
+    # Fetch iNaturalist publication date
+    print("Fetching iNaturalist publication date...")
+    inat_date = get_inat_pub_date()
+    print(f"  iNaturalist date: {inat_date}")
+
     # Load shared taxonomy once
     print("Loading taxonomy...")
     taxon_lookup, synonym_genus_map, sci_to_common = load_taxonomy()
     print(f"  {len(taxon_lookup)} taxon entries, {len(sci_to_common)} common name mappings")
 
-    # Rebuild priority GeoJSON → patch species map
+    # Rebuild priority GeoJSON → patch species map (archived, no INAT_UPDATED field)
     priority_geojson = rebuild_priority_geojson(taxon_lookup, synonym_genus_map, sci_to_common)
     patch_html(SPECIES_MAP_HTML, priority_geojson, data_date)
 
     # Rebuild all-blocks GeoJSON → patch checklist tool
     all_geojson = rebuild_all_blocks_geojson(taxon_lookup, synonym_genus_map, sci_to_common)
-    patch_html(CHECKLIST_HTML, all_geojson, data_date)
+    patch_html(CHECKLIST_HTML, all_geojson, data_date, inat_date=inat_date)
 
     print()
     print("=" * 60)
