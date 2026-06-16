@@ -243,17 +243,34 @@ def load_taxonomy():
 
     sci_to_common = {sci: vernacular[tid]
                      for sci, tid in sci_to_id.items() if tid in vernacular}
+
     return taxon_lookup, synonym_genus_map, sci_to_common
 
 
 def assign_occurrences(blocks, block_key, taxon_lookup, synonym_genus_map):
     """
     Stream through OCC_FILE and assign each record to a block.
+    Uses verbatimScientificName as primary name source so that provider taxonomy
+    (e.g. Gesta → Erynnis) is resolved via taxon.csv synonym rules, not GBIF's backbone.
     block_key: lambda b -> the dict key to use (e.g. b['neblock'] or b['blockid'])
     Returns (block_species, block_genus_only) as defaultdict(set).
     """
     block_species    = defaultdict(set)
     block_genus_only = defaultdict(set)
+
+    # Verbatim names to skip entirely (slash notation, multi-genus ambiguities, confirmed errors)
+    VERBATIM_SKIP = {
+        "pterourus glaucus/canadensis/solstitius",  # tiger swallowtail sp. — ambiguous, nearly always redundant
+        "euphyes-pompeius-wallengrenia sp.",         # the "Witches" group — multi-genus, unresolvable
+        "lerema accius",                             # data errors (eButterfly misIDs)
+        "eresia ithomioides",                        # data errors (eButterfly misIDs)
+    }
+
+    # Verbatim species names to treat as genus-only (unresolvable splits not in checklist)
+    # Format: (genus_lower, epithet_lower) → accepted_genus_lower
+    SPECIES_TO_GENUS_ONLY = {
+        ("celastrina", "ladon"): "celastrina",  # old broad-concept spring azure; treat as Celastrina sp.
+    }
 
     def resolve(genus, epithet):
         key=(genus.lower(), epithet.lower())
@@ -274,10 +291,26 @@ def assign_occurrences(blocks, block_key, taxon_lookup, synonym_genus_map):
                 lat=float(row["decimalLatitude"]); lon=float(row["decimalLongitude"])
             except (ValueError, KeyError):
                 continue
-            rank    = row.get("taxonRank","").strip().upper()
-            genus   = row.get("genus","").strip()
-            epithet = row.get("specificEpithet","").strip()
-            if rank=="FAMILY" or not genus: continue
+
+            vsn = row.get("verbatimScientificName","").strip()
+            if not vsn: continue
+
+            vsn_lower = vsn.lower()
+
+            # Skip family/subfamily-level records
+            if row.get("taxonRank","").strip().upper() == "FAMILY": continue
+            vsn_first = vsn.split()[0]
+            if vsn_first.lower().endswith("idae") or vsn_first.lower().endswith("inae"): continue
+
+            # Skip known unresolvable / erroneous names
+            if vsn_lower in VERBATIM_SKIP: continue
+
+            # Parse genus and epithet from verbatimScientificName (first two words)
+            vsn_parts = vsn.split()
+            genus   = vsn_parts[0]
+            epithet = vsn_parts[1] if len(vsn_parts) >= 2 else ""
+            if epithet.lower() in ("sp.", "sp", "spp.", "spp"):
+                epithet = ""
 
             pt = Point(lon, lat); assigned = None
             for b in blocks:
@@ -287,11 +320,15 @@ def assign_occurrences(blocks, block_key, taxon_lookup, synonym_genus_map):
                         assigned=block_key(b); break
             if assigned is None: continue
 
-            if rank=="GENUS":
+            if not epithet:
                 canonical=synonym_genus_map.get(genus.lower(), genus.lower())
                 block_genus_only[assigned].add(canonical)
-            elif rank in ("SPECIES","SUBSPECIES") and epithet:
-                block_species[assigned].add(resolve(genus, epithet))
+            else:
+                override_genus = SPECIES_TO_GENUS_ONLY.get((genus.lower(), epithet.lower()))
+                if override_genus:
+                    block_genus_only[assigned].add(override_genus)
+                else:
+                    block_species[assigned].add(resolve(genus, epithet))
 
     print()
     return block_species, block_genus_only
