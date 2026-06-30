@@ -3,3 +3,9 @@ occ/
 qgis/
 secrets.js
 species_csv/
+
+# Deploy package: never commit private keys or the packaged tarball
+*.pem
+vba2_deploy_kpm/
+vba2_deploy_kpm.tar.gz
+vba2_deploy_kpm.zip

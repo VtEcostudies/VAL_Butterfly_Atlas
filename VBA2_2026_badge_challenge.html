@@ -1,0 +1,595 @@
+<!--
+  ============================================================
+  SECOND VERMONT BUTTERFLY ATLAS — VOLUNTEER GALLERY
+  WordPress Custom HTML Block
+  ============================================================
+
+  SETUP:
+  1. Deploy the Google Apps Script (see atlas-apps-script.js)
+  2. Paste the Web App URL into the SHEET_ENDPOINT variable below
+  3. Add this entire file to a Custom HTML block in WordPress
+
+  BADGE DEFINITIONS:
+  Update the BADGE_DEFS array with your badge IDs, labels, image URLs,
+  and categories. Badge IDs must exactly match the column headers in
+  your Google Sheet.
+  ============================================================
+-->
+
+<div id="atlas-gallery-root">
+
+<style>
+#atlas-gallery-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1a1a1a;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+  font-size: 16px;
+}
+#atlas-gallery-root template { display: none; }
+#atlas-gallery-root .ag-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#atlas-gallery-root .ag-leaderboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+@media (max-width: 600px) {
+  #atlas-gallery-root .ag-leaderboard { grid-template-columns: 1fr; }
+}
+#atlas-gallery-root .ag-lb-card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#atlas-gallery-root .ag-lb-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#atlas-gallery-root .ag-lb-rank { font-size: 20px; font-weight: 700; min-width: 36px; color: #999; flex-shrink: 0; }
+#atlas-gallery-root .ag-lb-rank.gold   { color: #b8860b; }
+#atlas-gallery-root .ag-lb-rank.silver { color: #808080; }
+#atlas-gallery-root .ag-lb-rank.bronze { color: #8b4513; }
+#atlas-gallery-root .ag-lb-avatar,
+#atlas-gallery-root .ag-avatar-initials,
+#atlas-gallery-root .ag-avatar-photo {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; flex-shrink: 0;
+  object-fit: cover;
+}
+#atlas-gallery-root .ag-lb-info { flex: 1; min-width: 0; }
+#atlas-gallery-root .ag-lb-name {
+  font-size: 17px; font-weight: 600;
+  white-space: normal; word-break: break-word; color: #111;
+}
+#atlas-gallery-root .ag-lb-stat { font-size: 14px; color: #777; margin-top: 2px; }
+#atlas-gallery-root .ag-lb-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+#atlas-gallery-root .ag-lb-badges img { width: 36px; height: 36px; border-radius: 50%; object-fit: contain; }
+#atlas-gallery-root .ag-divider { border: none; border-top: 1px solid #e5e5e5; margin: 1.75rem 0; }
+#atlas-gallery-root .ag-legend-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600; color: #4a7c59;
+  background: #f3f8f4; border: 1px solid #cfe3d3; border-radius: 8px;
+  padding: 8px 14px; margin-bottom: 1rem; cursor: pointer;
+  font-family: inherit; transition: background 0.12s;
+}
+#atlas-gallery-root .ag-legend-toggle:hover { background: #e8f3ea; }
+#atlas-gallery-root .ag-legend {
+  background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px;
+  padding: 1.25rem; margin-bottom: 1.25rem;
+}
+#atlas-gallery-root .ag-legend-note {
+  font-size: 14px; font-style: italic; color: #666;
+  margin: 0 0 1.25rem; padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+#atlas-gallery-root .ag-legend-group { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e8e8e8; }
+#atlas-gallery-root .ag-legend-group:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+#atlas-gallery-root .ag-legend-group-title {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #4a7c59; margin: 0 0 0.85rem;
+}
+#atlas-gallery-root .ag-legend-subgroup { margin-bottom: 0.9rem; }
+#atlas-gallery-root .ag-legend-subgroup:last-child { margin-bottom: 0; }
+#atlas-gallery-root .ag-legend-subgroup-title {
+  font-size: 13px; font-weight: 600; color: #666; margin: 0 0 0.5rem;
+}
+#atlas-gallery-root .ag-legend-items {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+}
+#atlas-gallery-root .ag-legend-item {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 1px solid #ececec; border-radius: 10px; padding: 10px 12px;
+}
+#atlas-gallery-root .ag-legend-item img { width: 44px; height: 44px; border-radius: 50%; object-fit: contain; flex-shrink: 0; }
+#atlas-gallery-root .ag-legend-text { min-width: 0; }
+#atlas-gallery-root .ag-legend-label { font-size: 14px; font-weight: 600; color: #222; }
+#atlas-gallery-root .ag-legend-desc { font-size: 13px; color: #777; margin-top: 2px; line-height: 1.3; }
+#atlas-gallery-root .ag-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 1rem;
+}
+#atlas-gallery-root .ag-search {
+  flex: 1; min-width: 180px; max-width: 320px;
+  padding: 10px 14px; font-size: 16px;
+  border: 1px solid #ccc; border-radius: 8px; outline: none;
+  transition: border-color 0.15s;
+}
+#atlas-gallery-root .ag-search:focus { border-color: #4a7c59; }
+#atlas-gallery-root .ag-count { font-size: 15px; color: #888; }
+#atlas-gallery-root .ag-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+#atlas-gallery-root .ag-pill {
+  font-size: 14px; padding: 6px 16px; border-radius: 99px;
+  border: 1px solid #ccc; background: #fff; color: #555;
+  cursor: pointer; transition: all 0.12s; font-family: inherit;
+}
+#atlas-gallery-root .ag-pill:hover { border-color: #4a7c59; color: #4a7c59; }
+#atlas-gallery-root .ag-pill.active { background: #4a7c59; color: #fff; border-color: #4a7c59; }
+#atlas-gallery-root .ag-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+#atlas-gallery-root .ag-vol-card {
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+#atlas-gallery-root .ag-vol-card:hover {
+  border-color: #4a7c59; box-shadow: 0 2px 8px rgba(74,124,89,0.08);
+}
+#atlas-gallery-root .ag-vol-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#atlas-gallery-root .ag-vol-header .ag-avatar-initials,
+#atlas-gallery-root .ag-vol-header .ag-avatar-photo {
+  width: 48px; height: 48px; font-size: 16px;
+}
+#atlas-gallery-root .ag-vol-name { font-size: 15px; font-weight: 600; color: #111; word-break: break-all; line-height: 1.3; }
+#atlas-gallery-root .ag-vol-platform { font-size: 13px; color: #888; margin-top: 2px; }
+#atlas-gallery-root .ag-badge-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+#atlas-gallery-root .ag-badge-img {
+  width: 60px; height: 60px; border-radius: 50%; object-fit: contain;
+  cursor: default; transition: transform 0.1s;
+}
+#atlas-gallery-root .ag-badge-img:hover { transform: scale(1.15); }
+#atlas-badge-tooltip {
+  position: fixed; background: #fff; border: 1px solid #ddd; border-radius: 6px;
+  font-size: 14px; color: #333; padding: 5px 12px; pointer-events: none;
+  z-index: 9999; white-space: nowrap; display: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+#atlas-gallery-root .ag-loading {
+  text-align: center; color: #888; font-size: 16px; padding: 2.5rem 0;
+}
+#atlas-gallery-root .ag-error {
+  text-align: center; color: #c0392b; font-size: 16px; padding: 2.5rem 0; display: none;
+}
+#atlas-gallery-root .ag-no-results {
+  text-align: center; color: #888; font-size: 14px; padding: 2.5rem 0; display: none;
+}
+</style>
+
+<div id="atlas-badge-tooltip"></div>
+
+<p class="ag-section-label">🏆 Top contributors</p>
+<div class="ag-leaderboard" id="ag-leaderboard">
+  <div class="ag-loading">Loading volunteers…</div>
+</div>
+
+<hr class="ag-divider">
+
+<p class="ag-section-label">🦋 Volunteer gallery</p>
+
+<button class="ag-legend-toggle" id="ag-legend-toggle">📖 What do the badges mean?</button>
+<div class="ag-legend" id="ag-legend" style="display:none;"></div>
+
+<div class="ag-controls">
+  <input class="ag-search" id="ag-search" type="text" placeholder="Search by username…" />
+  <span class="ag-count" id="ag-count"></span>
+</div>
+<div class="ag-pills" id="ag-pills"></div>
+<div class="ag-gallery"   id="ag-gallery"><div class="ag-loading">Loading volunteers…</div></div>
+<p class="ag-error"      id="ag-error">Unable to load volunteer data. Please try again later.</p>
+<p class="ag-no-results" id="ag-no-results">No volunteers match that search.</p>
+
+</div>
+
+<script>
+(function() {
+
+  /* ============================================================
+     STEP 1: Paste your Google Apps Script Web App URL here.
+     It looks like: https://script.google.com/macros/s/YOUR_ID/exec
+  ============================================================ */
+  var SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwmFA54t4DiOASEpt0mcSJ2K8e9SmrjqGv5_3bhGKzNaYXNoSHIwALmYz4--LX6NCCQ5Q/exec';
+
+  /* ============================================================
+     STEP 2: Update BADGE_DEFS to match your badges.
+     - id:          must exactly match the column header in your Google Sheet
+     - label:       short name, shown as tooltip text on hover
+     - description: longer explanation, shown in the badge legend
+                     (e.g. "5 species documented in 2026")
+     - img:         full URL of the badge PNG in your WordPress media library
+     - cat:         filter category — "checklists", "blocks", or "species"
+     - group:       badge family name used to organize the legend
+                     (e.g. "Species Richness", "Block Buster", "Block Party")
+                     Badges that share a group are shown together under
+                     one heading in the legend, in the order listed here.
+  ============================================================ */
+  var BADGE_DEFS = [
+    { id:"sr1",  label:"Species Richness Tier 1",                description:"5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
+    { id:"sr2",  label:"Species Richness Tier 2",                description:"20 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-2.png",      cat:"species", group:"Species Richness" },
+    { id:"sr3",  label:"Species Richness Tier 3",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
+    { id:"sr4",  label:"Species Richness Tier 4",                description:"80 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
+    { id:"sr5",  label:"Species Richness Tier 5",                description:"120 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
+    { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
+    { id:"bb1",  label:"Block Buster Tier 1",                    description:"Surveyed at 5 priority blocks",                          img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-1.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb2",  label:"Block Buster Tier 2",                    description:"Surveyed at 10 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-2.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb3",  label:"Block Buster Tier 3",                    description:"Surveyed at 15 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-3.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb4",  label:"Block Buster Tier 4",                    description:"Surveyed at 30+ priority blocks",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-4.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bp1",  label:"Block Party Tier 1",                     description:"Found 10 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-1.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp2",  label:"Block Party Tier 2",                     description:"Found 20 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-2.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp3",  label:"Block Party Tier 3",                     description:"Found 30 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-3.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp4",  label:"Block Party Tier 4",                     description:"Completed their priority block",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-4.png",           cat:"blocks",  group:"Block Party" },
+  ];
+
+  /* ============================================================
+     MANUAL FALLBACK — optional
+     If you ever need to override the sheet data temporarily
+     (e.g. the sheet is unavailable), set USE_MANUAL_DATA = true
+     and populate MANUAL_VOLUNTEERS below.
+     Set back to false to resume reading from the sheet.
+  ============================================================ */
+  var USE_MANUAL_DATA = false;
+
+  var MANUAL_VOLUNTEERS = [
+    // { ebutterfly: "ExampleUser", inat: "ExampleUser2", badges: ["sr1","bb1"] },
+  ];
+
+  /* ── internal helpers ── */
+  var AVATAR_COLORS = [
+    {bg:"#dff0e8",c:"#2d6a4f"},{bg:"#dce8f8",c:"#1a4f85"},
+    {bg:"#ece8fc",c:"#4a2d8a"},{bg:"#fdf0d5",c:"#7a4d0a"},
+    {bg:"#fde8e8",c:"#8a2d2d"},{bg:"#e8f8ec",c:"#1a6b3a"},
+  ];
+
+  var VOLUNTEERS = [];
+  var activeFilter = 'all';
+
+  var CATS = [
+    { id:'all',        label:'All' },
+    { id:'species',    label:'Species' },
+    { id:'blocks',     label:'Blocks' },
+    { id:'checklists', label:'Checklists' },
+  ];
+
+  /* ── badge legend ──
+     Built directly from BADGE_DEFS, grouped by category (Species, Blocks,
+     Checklists) and then by badge "group" (e.g. Species Richness, Block
+     Buster) within each category. Any new badge added to BADGE_DEFS
+     automatically appears here, sorted into the right category/group. */
+  function renderLegend() {
+    var cats = CATS.filter(function(c){ return c.id !== 'all'; });
+    var legendEl = document.getElementById('ag-legend');
+
+    var noteHTML = '<p class="ag-legend-note">All badges are earned based on records submitted in 2026. Records on iNaturalist may take up to 2 weeks to update.</p>';
+
+    var groupsByCatHTML = cats.map(function(c) {
+      var defsInCat = BADGE_DEFS.filter(function(b){ return b.cat === c.id; });
+      if (defsInCat.length === 0) return '';
+
+      // collect unique group names in the order they first appear
+      var groupNames = [];
+      defsInCat.forEach(function(d) {
+        var g = d.group || d.label;
+        if (groupNames.indexOf(g) === -1) groupNames.push(g);
+      });
+
+      var groupsHTML = groupNames.map(function(groupName) {
+        var defs = defsInCat.filter(function(d) { return (d.group || d.label) === groupName; });
+        var items = defs.map(function(d) {
+          return '<div class="ag-legend-item">'
+            + '<img src="' + d.img + '" alt="' + d.label + '" />'
+            + '<div class="ag-legend-text">'
+            +   '<div class="ag-legend-label">' + d.label + '</div>'
+            +   (d.description ? '<div class="ag-legend-desc">' + d.description + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        }).join('');
+        return '<div class="ag-legend-subgroup">'
+          + '<p class="ag-legend-subgroup-title">' + groupName + '</p>'
+          + '<div class="ag-legend-items">' + items + '</div>'
+          + '</div>';
+      }).join('');
+
+      return '<div class="ag-legend-group">'
+        + '<p class="ag-legend-group-title">' + c.label + '</p>'
+        + groupsHTML
+        + '</div>';
+    }).join('');
+
+    legendEl.innerHTML = noteHTML + groupsByCatHTML;
+  }
+
+  document.getElementById('ag-legend-toggle').addEventListener('click', function() {
+    var legendEl = document.getElementById('ag-legend');
+    var isOpen = legendEl.style.display !== 'none';
+    legendEl.style.display = isOpen ? 'none' : 'block';
+    this.textContent = isOpen ? '📖 What do the badges mean?' : '📖 Hide badge legend';
+  });
+
+  renderLegend();
+
+  function initials(name) {
+    var parts = (name || '').replace(/[^a-zA-Z ]/g,' ').trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : (name || '??').slice(0,2).toUpperCase();
+  }
+
+  function badgeDef(id) {
+    return BADGE_DEFS.find(function(b){ return b.id === id; });
+  }
+
+  function badgeImgHTML(id, size) {
+    var d = badgeDef(id);
+    if (!d) return '';
+    return '<img class="ag-badge-img" src="' + d.img + '" '
+         + 'alt="' + d.label + '" data-label="' + d.label + '" '
+         + 'style="width:' + size + 'px;height:' + size + 'px;" />';
+  }
+
+  /* display name: prefer iNat, fall back to eButterfly */
+  function displayName(v) {
+    return v.inat || v.ebutterfly || 'Unknown';
+  }
+
+  /* platform label */
+  function platformLabel(v) {
+    if (v.inat && v.ebutterfly) return 'iNaturalist · eButterfly';
+    if (v.inat)       return 'iNaturalist';
+    if (v.ebutterfly) return 'eButterfly';
+    return '';
+  }
+
+  /* cache of iNaturalist username -> photo URL (or null if none/failed) */
+  var INAT_PHOTOS = {};
+  var avatarCounter = 0;
+
+  /* avatar HTML: uses iNat photo if we have one cached, otherwise initials.
+     Photo <img> tags get a unique id; if the image fails to load, a
+     listener (attached after render, see attachAvatarFallbacks) swaps
+     in the initials version. This avoids fragile inline-attribute
+     string-escaping that was breaking the card markup. */
+  function avatarHTML(v, size, bg, color) {
+    var photoUrl = v.inat ? INAT_PHOTOS[v.inat.toLowerCase()] : null;
+    var initialsHTML = '<div class="ag-avatar-initials" style="width:' + size + 'px;height:' + size + 'px;'
+      + 'background:' + bg + ';color:' + color + ';font-size:' + Math.round(size * 0.34) + 'px;">'
+      + initials(displayName(v)) + '</div>';
+
+    if (photoUrl) {
+      avatarCounter++;
+      var avId = 'ag-avatar-' + avatarCounter;
+      return '<img id="' + avId + '" class="ag-avatar-photo" src="' + photoUrl + '" '
+        + 'alt="' + displayName(v) + '" data-fallback-id="' + avId + '" '
+        + 'style="width:' + size + 'px;height:' + size + 'px;" />'
+        + '<template id="' + avId + '-fallback">' + initialsHTML + '</template>';
+    }
+    return initialsHTML;
+  }
+
+  /* After rendering, attach error handlers to any photo avatars so a
+     broken/missing image swaps cleanly to the initials version. */
+  function attachAvatarFallbacks(container) {
+    container.querySelectorAll('.ag-avatar-photo').forEach(function(img) {
+      img.addEventListener('error', function() {
+        var fallbackId = img.getAttribute('data-fallback-id');
+        var template = document.getElementById(fallbackId + '-fallback');
+        if (template) {
+          img.replaceWith(template.content.cloneNode(true));
+          template.remove();
+        }
+      });
+    });
+  }
+
+  /* ── tooltip ── */
+  var tooltip = document.getElementById('atlas-badge-tooltip');
+  document.addEventListener('mousemove', function(e) {
+    if (e.target.classList.contains('ag-badge-img')) {
+      tooltip.textContent = e.target.getAttribute('data-label');
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top  = (e.clientY - 28) + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  /* ── leaderboard ── */
+  /* For a volunteer's earned badges, pick their highest tier within
+     each badge "group" (e.g. Species Richness 1-5), then return up
+     to `max` of those — one badge representing each group's top
+     achievement, rather than just their first 3 badges overall. */
+  function topBadgesByGroup(earnedIds, max) {
+    var byGroup = {}; // groupName -> highest-tier badge def earned in that group
+    earnedIds.forEach(function(id) {
+      var def = badgeDef(id);
+      if (!def) return;
+      var groupName = def.group || def.label;
+      var groupDefs = BADGE_DEFS.filter(function(b){ return (b.group || b.label) === groupName; });
+      var tierIndex = groupDefs.indexOf(def); // later in the array = higher tier
+      var current = byGroup[groupName];
+      if (!current || tierIndex > current.tierIndex) {
+        byGroup[groupName] = { def: def, tierIndex: tierIndex };
+      }
+    });
+    return Object.keys(byGroup).slice(0, max).map(function(g) { return byGroup[g].def.id; });
+  }
+
+  function renderLeaderboard() {
+    var sorted = VOLUNTEERS.slice().sort(function(a,b){
+      return b.badges.length - a.badges.length;
+    });
+    var rankClass = ['gold','silver','bronze'];
+    var rankLabel = ['1st','2nd','3rd'];
+    var lbEl = document.getElementById('ag-leaderboard');
+    if (sorted.length === 0) {
+      lbEl.innerHTML = '<div class="ag-loading">No volunteers yet.</div>';
+      return;
+    }
+    lbEl.innerHTML = sorted.slice(0,3).map(function(v, i) {
+      var av = AVATAR_COLORS[i % AVATAR_COLORS.length];
+      var topBadgeIds = topBadgesByGroup(v.badges, 3);
+      var badgeImgs = topBadgeIds.map(function(id){ return badgeImgHTML(id, 36); }).join('');
+      return '<div class="ag-lb-card">'
+        + '<div class="ag-lb-top">'
+        +   '<div class="ag-lb-rank ' + rankClass[i] + '">' + rankLabel[i] + '</div>'
+        +   avatarHTML(v, 52, av.bg, av.c)
+        +   '<div class="ag-lb-info">'
+        +     '<div class="ag-lb-name">' + displayName(v) + '</div>'
+        +     '<div class="ag-lb-stat">' + v.badges.length + ' badge' + (v.badges.length !== 1 ? 's' : '') + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="ag-lb-badges">' + badgeImgs + '</div>'
+        + '</div>';
+    }).join('');
+    attachAvatarFallbacks(lbEl);
+  }
+  function renderPills() {
+    var pillsEl = document.getElementById('ag-pills');
+    pillsEl.innerHTML = CATS.map(function(c) {
+      return '<button class="ag-pill' + (c.id === activeFilter ? ' active' : '') + '" '
+           + 'data-cat="' + c.id + '">' + c.label + '</button>';
+    }).join('');
+    pillsEl.querySelectorAll('.ag-pill').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        activeFilter = this.getAttribute('data-cat');
+        renderPills();
+        renderGallery();
+      });
+    });
+  }
+
+  /* ── gallery ── */
+  function renderGallery() {
+    var q = (document.getElementById('ag-search').value || '').toLowerCase();
+    var catBadgeIds = activeFilter === 'all' ? null
+      : BADGE_DEFS.filter(function(b){ return b.cat === activeFilter; }).map(function(b){ return b.id; });
+
+    var vols = VOLUNTEERS.filter(function(v) {
+      if (catBadgeIds && !v.badges.some(function(b){ return catBadgeIds.indexOf(b) > -1; })) return false;
+      var name = (displayName(v) + ' ' + (v.ebutterfly||'') + ' ' + (v.inat||'')).toLowerCase();
+      if (q && name.indexOf(q) === -1) return false;
+      return true;
+    });
+
+    document.getElementById('ag-count').textContent =
+      vols.length + ' volunteer' + (vols.length !== 1 ? 's' : '');
+
+    var galleryEl = document.getElementById('ag-gallery');
+    var noRes     = document.getElementById('ag-no-results');
+
+    if (vols.length === 0) {
+      galleryEl.innerHTML = '';
+      noRes.style.display = 'block';
+      return;
+    }
+    noRes.style.display = 'none';
+
+    galleryEl.innerHTML = vols.map(function(v, i) {
+      var av = AVATAR_COLORS[i % AVATAR_COLORS.length];
+       var topTierBadgeIds = topBadgesByGroup(v.badges, v.badges.length);
+      var badges = topTierBadgeIds.map(function(id){ return badgeImgHTML(id, 60); }).join('');
+      return '<div class="ag-vol-card">'
+        + '<div class="ag-vol-header">'
+        +   avatarHTML(v, 48, av.bg, av.c)
+        +   '<div>'
+        +     '<div class="ag-vol-name">' + displayName(v) + '</div>'
+        +     '<div class="ag-vol-platform">' + platformLabel(v) + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="ag-badge-row">' + (badges || '<span style="font-size:11px;color:#aaa;">No badges yet</span>') + '</div>'
+        + '</div>';
+    }).join('');
+    attachAvatarFallbacks(galleryEl);
+  }
+  /* ── load data ── */
+  function init(data) {
+    VOLUNTEERS = data;
+    renderLeaderboard();
+    renderPills();
+    renderGallery();
+    document.getElementById('ag-search').addEventListener('input', renderGallery);
+    loadInatPhotos();
+  }
+
+  /* ── fetch iNaturalist profile photos ──
+     iNaturalist's public API returns user info by exact login name at:
+       https://api.inaturalist.org/v1/users/autocomplete?q=USERNAME
+     We look for an exact (case-insensitive) login match in the results
+     and use its icon_url. Volunteers without a photo, or with usernames
+     that don't resolve, simply keep their initials avatar. */
+  function loadInatPhotos() {
+    var usernames = [];
+    VOLUNTEERS.forEach(function(v) {
+      if (v.inat && usernames.indexOf(v.inat.toLowerCase()) === -1) {
+        usernames.push(v.inat.toLowerCase());
+      }
+    });
+
+    usernames.forEach(function(username) {
+      fetch('https://api.inaturalist.org/v1/users/autocomplete?q=' + encodeURIComponent(username))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (!data || !data.results) return;
+          var match = data.results.find(function(u) {
+            return u.login && u.login.toLowerCase() === username;
+          });
+          if (match && match.icon_url) {
+            INAT_PHOTOS[username] = match.icon_url;
+            renderLeaderboard();
+            renderGallery();
+          }
+        })
+        .catch(function() {
+          // Silently ignore — that volunteer just keeps their initials avatar
+        });
+    });
+  }
+
+  function showError() {
+    document.getElementById('ag-leaderboard').innerHTML = '';
+    document.getElementById('ag-gallery').innerHTML = '';
+    document.getElementById('ag-error').style.display = 'block';
+  }
+
+  if (USE_MANUAL_DATA) {
+    init(MANUAL_VOLUNTEERS);
+  } else {
+    window.atlasGalleryCallback = function(data) {
+      if (data.error) { showError(); return; }
+      init(data);
+    };
+    var script = document.createElement('script');
+    script.src = SHEET_ENDPOINT + '?callback=atlasGalleryCallback';
+    script.onerror = showError;
+    document.head.appendChild(script);
+  }
+
+})();
+</script>
