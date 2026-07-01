@@ -15,6 +15,7 @@
   your Google Sheet.
   ============================================================
 -->
+<meta charset="UTF-8">
 
 <div id="atlas-gallery-root">
 
@@ -41,7 +42,7 @@
 }
 #atlas-gallery-root .ag-leaderboard {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(250px, 1fr));
   gap: 12px;
   margin-bottom: 2rem;
 }
@@ -231,12 +232,12 @@
                      one heading in the legend, in the order listed here.
   ============================================================ */
   var BADGE_DEFS = [
-    { id:"sr1",  label:"Species Richness Tier 1",                description:"5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
+    { id:"sr1",  label:"Species Richness Tier 1",                description:"At least 5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
     { id:"sr2",  label:"Species Richness Tier 2",                description:"20 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-2.png",      cat:"species", group:"Species Richness" },
     { id:"sr3",  label:"Species Richness Tier 3",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
     { id:"sr4",  label:"Species Richness Tier 4",                description:"80 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
     { id:"sr5",  label:"Species Richness Tier 5",                description:"120 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
-    { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
+    { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need (excluding Monarchs)",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
     { id:"bb1",  label:"Block Buster Tier 1",                    description:"Surveyed at 5 priority blocks",                          img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-1.png",           cat:"blocks",  group:"Block Buster" },
     { id:"bb2",  label:"Block Buster Tier 2",                    description:"Surveyed at 10 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-2.png",           cat:"blocks",  group:"Block Buster" },
     { id:"bb3",  label:"Block Buster Tier 3",                    description:"Surveyed at 15 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-3.png",           cat:"blocks",  group:"Block Buster" },
