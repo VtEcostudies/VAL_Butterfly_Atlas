@@ -15,7 +15,6 @@
   your Google Sheet.
   ============================================================
 -->
-<meta charset="UTF-8">
 
 <div id="atlas-gallery-root">
 
@@ -42,7 +41,7 @@
 }
 #atlas-gallery-root .ag-leaderboard {
   display: grid;
-  grid-template-columns: repeat(3, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 2rem;
 }
@@ -216,7 +215,7 @@
      STEP 1: Paste your Google Apps Script Web App URL here.
      It looks like: https://script.google.com/macros/s/YOUR_ID/exec
   ============================================================ */
-  var SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwmFA54t4DiOASEpt0mcSJ2K8e9SmrjqGv5_3bhGKzNaYXNoSHIwALmYz4--LX6NCCQ5Q/exec';
+  var SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwGUpvZi7Uv8Zv9n69rI3NDaAuVS35_ymOQyO_V_CCbX6HGEV7UTigJuCv2CvTXCBh_2Q/exec';
 
   /* ============================================================
      STEP 2: Update BADGE_DEFS to match your badges.
@@ -232,20 +231,20 @@
                      one heading in the legend, in the order listed here.
   ============================================================ */
   var BADGE_DEFS = [
-    { id:"sr1",  label:"Species Richness Tier 1",                description:"At least 5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
+    { id:"sr1",  label:"Species Richness Tier 1",                description:"5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
     { id:"sr2",  label:"Species Richness Tier 2",                description:"20 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-2.png",      cat:"species", group:"Species Richness" },
-    { id:"sr3",  label:"Species Richness Tier 3",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
-    { id:"sr4",  label:"Species Richness Tier 4",                description:"80 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
-    { id:"sr5",  label:"Species Richness Tier 5",                description:"120 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
-    { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need (excluding Monarchs)",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
+    { id:"sr3",  label:"Species Richness Tier 3",                description:"35 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
+    { id:"sr4",  label:"Species Richness Tier 4",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
+    { id:"sr5",  label:"Species Richness Tier 5",                description:"80 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
+    { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
     { id:"bb1",  label:"Block Buster Tier 1",                    description:"Surveyed at 5 priority blocks",                          img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-1.png",           cat:"blocks",  group:"Block Buster" },
     { id:"bb2",  label:"Block Buster Tier 2",                    description:"Surveyed at 10 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-2.png",           cat:"blocks",  group:"Block Buster" },
     { id:"bb3",  label:"Block Buster Tier 3",                    description:"Surveyed at 15 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-3.png",           cat:"blocks",  group:"Block Buster" },
     { id:"bb4",  label:"Block Buster Tier 4",                    description:"Surveyed at 30+ priority blocks",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-4.png",           cat:"blocks",  group:"Block Buster" },
-    { id:"bp1",  label:"Block Party Tier 1",                     description:"Found 10 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-1.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp2",  label:"Block Party Tier 2",                     description:"Found 20 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-2.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp3",  label:"Block Party Tier 3",                     description:"Found 30 species on their priority block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-3.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp4",  label:"Block Party Tier 4",                     description:"Completed their priority block",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-4.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp1",  label:"Block Party Tier 1",                     description:"Found 10 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-1.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp2",  label:"Block Party Tier 2",                     description:"Found 20 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-2.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp3",  label:"Block Party Tier 3",                     description:"Found 30 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-3.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp4",  label:"Block Party Tier 4",                     description:"Completed their adopted block",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-4.png",           cat:"blocks",  group:"Block Party" },
   ];
 
   /* ============================================================
@@ -353,7 +352,39 @@
          + 'alt="' + d.label + '" data-label="' + d.label + '" '
          + 'style="width:' + size + 'px;height:' + size + 'px;" />';
   }
+function blockPartyBadgeImgHTML(entry, size) {
+  var def = badgeDef('bp' + entry.tier);
+  if (!def) return '';
+  var label = 'Block Party Tier ' + entry.tier + ' — ' + entry.block;
+  return '<img class="ag-badge-img" src="' + def.img + '" '
+       + 'alt="' + label + '" data-label="' + label + '" '
+       + 'style="width:' + size + 'px;height:' + size + 'px;" />';
+}
 
+/* Total achievement count for sorting/display — same convention as
+   before (each earned tier flag counts individually for grouped
+   badges), plus one count per completed block for Block Party. */
+function totalBadgeCount(v) {
+  var nonBlockPartyIds = v.badges.filter(function(id) {
+    var d = badgeDef(id);
+    return d && d.group !== 'Block Party';
+  });
+  return nonBlockPartyIds.length + (v.blockPartyBadges || []).length;
+}
+
+/* Returns up to `max` badge <img> tags, mixing top-tier group badges
+   with individual block party badges, at the given pixel size. */
+function topBadgeImages(v, max, size) {
+  var nonBlockPartyIds = v.badges.filter(function(id) {
+    var d = badgeDef(id);
+    return d && d.group !== 'Block Party';
+  });
+  var groupBadgeIds = topBadgesByGroup(nonBlockPartyIds, nonBlockPartyIds.length);
+  var imgs = groupBadgeIds.map(function(id) { return badgeImgHTML(id, size); });
+  imgs = imgs.concat((v.blockPartyBadges || [])
+    .map(function(entry) { return blockPartyBadgeImgHTML(entry, size); }));
+  return imgs.slice(0, max).join('');
+}
   /* display name: prefer iNat, fall back to eButterfly */
   function displayName(v) {
     return v.inat || v.ebutterfly || 'Unknown';
@@ -442,9 +473,9 @@
     return Object.keys(byGroup).slice(0, max).map(function(g) { return byGroup[g].def.id; });
   }
 
-  function renderLeaderboard() {
+function renderLeaderboard() {
     var sorted = VOLUNTEERS.slice().sort(function(a,b){
-      return b.badges.length - a.badges.length;
+      return totalBadgeCount(b) - totalBadgeCount(a);
     });
     var rankClass = ['gold','silver','bronze'];
     var rankLabel = ['1st','2nd','3rd'];
@@ -455,15 +486,14 @@
     }
     lbEl.innerHTML = sorted.slice(0,3).map(function(v, i) {
       var av = AVATAR_COLORS[i % AVATAR_COLORS.length];
-      var topBadgeIds = topBadgesByGroup(v.badges, 3);
-      var badgeImgs = topBadgeIds.map(function(id){ return badgeImgHTML(id, 36); }).join('');
+      var badgeImgs = topBadgeImages(v, 3, 36);
       return '<div class="ag-lb-card">'
         + '<div class="ag-lb-top">'
         +   '<div class="ag-lb-rank ' + rankClass[i] + '">' + rankLabel[i] + '</div>'
         +   avatarHTML(v, 52, av.bg, av.c)
         +   '<div class="ag-lb-info">'
         +     '<div class="ag-lb-name">' + displayName(v) + '</div>'
-        +     '<div class="ag-lb-stat">' + v.badges.length + ' badge' + (v.badges.length !== 1 ? 's' : '') + '</div>'
+        +     '<div class="ag-lb-stat">' + totalBadgeCount(v) + ' badge' + (totalBadgeCount(v) !== 1 ? 's' : '') + '</div>'
         +   '</div>'
         + '</div>'
         + '<div class="ag-lb-badges">' + badgeImgs + '</div>'
@@ -514,8 +544,15 @@
 
     galleryEl.innerHTML = vols.map(function(v, i) {
       var av = AVATAR_COLORS[i % AVATAR_COLORS.length];
-       var topTierBadgeIds = topBadgesByGroup(v.badges, v.badges.length);
-      var badges = topTierBadgeIds.map(function(id){ return badgeImgHTML(id, 60); }).join('');
+       var nonBlockPartyIds = v.badges.filter(function(id) {
+        var d = badgeDef(id);
+        return d && d.group !== 'Block Party';
+      });
+      var topTierBadgeIds = topBadgesByGroup(nonBlockPartyIds, nonBlockPartyIds.length);
+      var groupBadges = topTierBadgeIds.map(function(id){ return badgeImgHTML(id, 60); }).join('');
+      var blockPartyImgs = (v.blockPartyBadges || [])
+        .map(function(entry){ return blockPartyBadgeImgHTML(entry, 60); }).join('');
+      var badges = groupBadges + blockPartyImgs;
       return '<div class="ag-vol-card">'
         + '<div class="ag-vol-header">'
         +   avatarHTML(v, 48, av.bg, av.c)
