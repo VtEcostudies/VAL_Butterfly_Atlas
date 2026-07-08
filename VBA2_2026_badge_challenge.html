@@ -185,14 +185,14 @@
 
 <div id="atlas-badge-tooltip"></div>
 
-<p class="ag-section-label">🏆 Top contributors</p>
+<p class="ag-section-label">Top contributors</p>
 <div class="ag-leaderboard" id="ag-leaderboard">
   <div class="ag-loading">Loading volunteers…</div>
 </div>
 
 <hr class="ag-divider">
 
-<p class="ag-section-label">🦋 Volunteer gallery</p>
+<p class="ag-section-label">Volunteer gallery</p>
 
 <button class="ag-legend-toggle" id="ag-legend-toggle">📖 What do the badges mean?</button>
 <div class="ag-legend" id="ag-legend" style="display:none;"></div>
@@ -231,20 +231,20 @@
                      one heading in the legend, in the order listed here.
   ============================================================ */
   var BADGE_DEFS = [
-    { id:"sr1",  label:"Species Richness Tier 1",                description:"5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
-    { id:"sr2",  label:"Species Richness Tier 2",                description:"20 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-2.png",      cat:"species", group:"Species Richness" },
-    { id:"sr3",  label:"Species Richness Tier 3",                description:"35 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
-    { id:"sr4",  label:"Species Richness Tier 4",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
-    { id:"sr5",  label:"Species Richness Tier 5",                description:"80 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
+    { id:"sr1",  label:"Species Richness Level 1",                description:"5 species documented",                                   img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-1.png",      cat:"species", group:"Species Richness" },
+    { id:"sr2",  label:"Species Richness Level 2",                description:"20 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-2.png",      cat:"species", group:"Species Richness" },
+    { id:"sr3",  label:"Species Richness Level 3",                description:"35 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-3.png",      cat:"species", group:"Species Richness" },
+    { id:"sr4",  label:"Species Richness Level 4",                description:"50 species documented",                                  img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-4.png",      cat:"species", group:"Species Richness" },
+    { id:"sr5",  label:"Species Richness Level 5",                description:"80 species documented",                                 img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Species-Richness-5.png",      cat:"species", group:"Species Richness" },
     { id:"sgcn", label:"Species of Greatest Conservation Need",  description:"Documented a species of greatest conservation need",    img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/SGCN.png",                   cat:"species", group:"Species of Greatest Conservation Need" },
-    { id:"bb1",  label:"Block Buster Tier 1",                    description:"Surveyed at 5 priority blocks",                          img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-1.png",           cat:"blocks",  group:"Block Buster" },
-    { id:"bb2",  label:"Block Buster Tier 2",                    description:"Surveyed at 10 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-2.png",           cat:"blocks",  group:"Block Buster" },
-    { id:"bb3",  label:"Block Buster Tier 3",                    description:"Surveyed at 15 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-3.png",           cat:"blocks",  group:"Block Buster" },
-    { id:"bb4",  label:"Block Buster Tier 4",                    description:"Surveyed at 30+ priority blocks",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-4.png",           cat:"blocks",  group:"Block Buster" },
-    { id:"bp1",  label:"Block Party Tier 1",                     description:"Found 10 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-1.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp2",  label:"Block Party Tier 2",                     description:"Found 20 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-2.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp3",  label:"Block Party Tier 3",                     description:"Found 30 species on their adopted block",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-3.png",           cat:"blocks",  group:"Block Party" },
-    { id:"bp4",  label:"Block Party Tier 4",                     description:"Completed their adopted block",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-4.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bb1",  label:"Block Buster Level 1",                    description:"Surveyed 5 priority blocks",                          img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-1.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb2",  label:"Block Buster Level 2",                    description:"Surveyed 10 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-2.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb3",  label:"Block Buster Level 3",                    description:"Surveyed 15 priority blocks",                         img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-3.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bb4",  label:"Block Buster Level 4",                    description:"Surveyed 30+ priority blocks",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Blockbuster-4.png",           cat:"blocks",  group:"Block Buster" },
+    { id:"bp1",  label:"Block Party Level 1",                     description:"User has found 10 species on their adopted block since 2023",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-1.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp2",  label:"Block Party Level 2",                     description:"User has found 20 species on their adopted block since 2023",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-2.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp3",  label:"Block Party Level 3",                     description:"User has found 30 species on their adopted block since 2023",               img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-3.png",           cat:"blocks",  group:"Block Party" },
+    { id:"bp4",  label:"Block Party Complete",                     description:"User completed their adopted block (40 species since 2023)",                        img:"https://val.vtecostudies.org/wp-content/uploads/2026/06/Block-Party-4.png",           cat:"blocks",  group:"Block Party" },
   ];
 
   /* ============================================================
