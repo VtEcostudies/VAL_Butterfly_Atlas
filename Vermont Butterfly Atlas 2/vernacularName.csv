@@ -1,0 +1,135 @@
+id,vernacularName,source,language,locality,countryCode,isPreferredName
+VBS:1,Pipevine Swallowtail,,en,Vermont,US,TRUE
+VBS:10,Pink-edged Sulphur,,en,Vermont,US,TRUE
+VBS:10.1,Cloudless Sulphur,,en,Vermont,US,TRUE
+VBS:100,Sassacus Skipper,,en,Vermont,US,TRUE
+VBS:100,Indian Skipper,,en,Vermont,US,FALSE
+VBS:101.1,Peck's Skipper,,en,Vermont,US,TRUE
+VBS:102,Tawny-edged Skipper,,en,Vermont,US,TRUE
+VBS:103,Crossline Skipper,,en,Vermont,US,TRUE
+VBS:104,Long Dash,,en,Vermont,US,TRUE
+VBS:105.1,Northern Broken-Dash,,en,Vermont,US,TRUE
+VBS:106.1,Little Glassywing,,en,Vermont,US,TRUE
+VBS:106.8,Huron Sachem,,en,Vermont,US,TRUE
+VBS:107.1,Hobomok Skipper,,en,Vermont,US,TRUE
+VBS:107.5,Zabulon Skipper,,en,Vermont,US,TRUE
+VBS:108,Mulberrywing,,en,Vermont,US,TRUE
+VBS:109,Broad-winged Skipper,,en,Vermont,US,TRUE
+VBS:11,Mustard White,,en,Vermont,US,TRUE
+VBS:110,Delaware Skipper,,en,Vermont,US,TRUE
+VBS:111,Black Dash,,en,Vermont,US,TRUE
+VBS:112,Dion Skipper,,en,Vermont,US,TRUE
+VBS:113,Two-spotted Skipper,,en,Vermont,US,TRUE
+VBS:114,Dun Skipper,,en,Vermont,US,TRUE
+VBS:115,Dusted Skipper,,en,Vermont,US,TRUE
+VBS:12,West Virginia White,,en,Vermont,US,TRUE
+VBS:13,Cabbage White,,en,Vermont,US,TRUE
+VBS:14,Harvester,,en,Vermont,US,TRUE
+VBS:15.1,American Copper,,en,Vermont,US,TRUE
+VBS:16.1,Bronze Copper,,en,Vermont,US,TRUE
+VBS:17.1,Bog Copper,,en,Vermont,US,TRUE
+VBS:18,Acadian Hairstreak,,en,Vermont,US,TRUE
+VBS:19,Coral Hairstreak,,en,Vermont,US,TRUE
+VBS:2,Black Swallowtail,,en,Vermont,US,TRUE
+VBS:20,Banded Hairstreak,,en,Vermont,US,TRUE
+VBS:21,Hickory Hairstreak,,en,Vermont,US,TRUE
+VBS:21.1,Edward's Hairstreak,,en,Vermont,US,TRUE
+VBS:22,Striped Hairstreak,,en,Vermont,US,TRUE
+VBS:22.1,Northern Oak Hairstreak,,en,Vermont,US,TRUE
+VBS:22.2,Northern Oak Hairstreak,,en,Vermont,US,TRUE
+VBS:23,Juniper Hairstreak,,en,Vermont,US,TRUE
+VBS:24,Brown Elfin,,en,Vermont,US,TRUE
+VBS:25,Frosted Elfin,,en,Vermont,US,TRUE
+VBS:26,Henry's Elfin,,en,Vermont,US,TRUE
+VBS:26.1,Bog Elfin,,en,Vermont,US,TRUE
+VBS:27,Eastern Pine Elfin,,en,Vermont,US,TRUE
+VBS:28,Gray Hairstreak,,en,Vermont,US,TRUE
+VBS:28.5,Red-banded Hairstreak,,en,Vermont,US,TRUE
+VBS:29,White-M Hairstreak,,en,Vermont,US,TRUE
+VBS:3.2,Canadian Tiger Swallowtail,,en,Vermont,US,TRUE
+VBS:3.3,Midsummer Tiger Swallowtail,,en,Vermont,US,TRUE
+VBS:30,Early Hairstreak,,en,Vermont,US,TRUE
+VBS:31,Eastern Tailed-Blue,,en,Vermont,US,TRUE
+VBS:32,Northern Azure,,en,Vermont,US,FALSE
+VBS:32,Lucia Azure,,en,Vermont,US,TRUE
+VBS:33,Cherry Gall Azure,,en,Vermont,US,TRUE
+VBS:34,Summer Azure,,en,Vermont,US,TRUE
+VBS:35,Silvery Blue,,en,Vermont,US,TRUE
+VBS:36,Common Blue,,en,Vermont,US,TRUE
+VBS:37,American Snout,,en,Vermont,US,TRUE
+VBS:38,Monarch,,en,Vermont,US,TRUE
+VBS:39.1,Gulf Fritillary,,en,Vermont,US,TRUE
+VBS:4.1,Eastern Tiger Swallowtail,,en,Vermont,US,TRUE
+VBS:40,Variegated Fritillary,,en,Vermont,US,TRUE
+VBS:41.1,Silver-bordered Fritillary,,en,Vermont,US,TRUE
+VBS:42,Meadow Fritillary,,en,Vermont,US,TRUE
+VBS:43,Great Spangled Fritillary,,en,Vermont,US,TRUE
+VBS:44,Aphrodite Fritillary,,en,Vermont,US,TRUE
+VBS:45,Regal Fritillary,,en,Vermont,US,TRUE
+VBS:46,Atlantis Fritillary,,en,Vermont,US,TRUE
+VBS:47,Red-spotted Admiral,,en,Vermont,US,TRUE
+VBS:48,American White Admiral,,en,Vermont,US,TRUE
+VBS:49,Red-spotted Purple,,en,Vermont,US,TRUE
+VBS:5,Spicebush Swallowtail,,en,Vermont,US,TRUE
+VBS:5.1,Spicebush Swallowtail,,en,Vermont,US,TRUE
+VBS:50,Viceroy,,en,Vermont,US,TRUE
+VBS:51,Hackberry Emperor,,en,Vermont,US,TRUE
+VBS:52,Tawny Emperor,,en,Vermont,US,TRUE
+VBS:53,American Lady,,en,Vermont,US,TRUE
+VBS:54,Painted Lady,,en,Vermont,US,TRUE
+VBS:55,Red Admiral,,en,Vermont,US,TRUE
+VBS:56,Milbert's Tortoiseshell,,en,Vermont,US,TRUE
+VBS:56.1,European Peacock,,en,Vermont,US,TRUE
+VBS:57,Compton's Tortoiseshell,,en,Vermont,US,TRUE
+VBS:58,California Tortoiseshell,,en,Vermont,US,TRUE
+VBS:59,Mourning Cloak,,en,Vermont,US,TRUE
+VBS:6.1,Eastern Giant Swallowtail,,en,Vermont,US,TRUE
+VBS:6.1,Giant Swallowtail,,en,Vermont,US,FALSE
+VBS:60,Question Mark,,en,Vermont,US,TRUE
+VBS:61,Eastern Comma,,en,Vermont,US,TRUE
+VBS:62,Gray Comma,,en,Vermont,US,TRUE
+VBS:63,Green Comma,,en,Vermont,US,TRUE
+VBS:64,Northern Buckeye,,en,Vermont,US,TRUE
+VBS:65,Baltimore Checkerspot,,en,Vermont,US,TRUE
+VBS:66,Silvery Checkerspot,,en,Vermont,US,TRUE
+VBS:67,Harris's Checkerspot,,en,Vermont,US,TRUE
+VBS:68,Pearl Crescent,,en,Vermont,US,TRUE
+VBS:69,Northern Crescent,,en,Vermont,US,TRUE
+VBS:69.1,Diminutor Crescent,,en,Vermont,US,TRUE
+VBS:7.1,Little Yellow,,en,Vermont,US,TRUE
+VBS:70,Northern Pearly-eye,,en,Vermont,US,TRUE
+VBS:71,Eyed Brown,,en,Vermont,US,TRUE
+VBS:72,Appalachian Eyed Brown,,en,Vermont,US,FALSE
+VBS:72,Appalachian Brown,,en,Vermont,US,TRUE
+VBS:73,California Ringlet,,en,Vermont,US,FALSE
+VBS:73,Common Ringlet,,en,Vermont,US,TRUE
+VBS:74,Little Wood-Satyr,,en,Vermont,US,TRUE
+VBS:75,Jutta Arctic,,en,Vermont,US,TRUE
+VBS:76,Common Wood-nymph,,en,Vermont,US,TRUE
+VBS:77,Northern Clouded Wood-nymph,,en,Vermont,US,TRUE
+VBS:78,Eastern Common Wood-nymph,,en,Vermont,US,TRUE
+VBS:79,Silver-spotted Skipper,,en,Vermont,US,TRUE
+VBS:8,Clouded Sulphur,,en,Vermont,US,TRUE
+VBS:80,Long-tailed Skipper,,en,Vermont,US,TRUE
+VBS:82,Northern Cloudywing,,en,Vermont,US,TRUE
+VBS:82.1,Northern Cloudywing,,en,Vermont,US,TRUE
+VBS:83,Common Sootywing,,en,Vermont,US,TRUE
+VBS:84,Dreamy Duskywing,,en,Vermont,US,TRUE
+VBS:85,Juvenal's Duskywing,,en,Vermont,US,TRUE
+VBS:86,Horace's Duskywing,,en,Vermont,US,TRUE
+VBS:87,Wild Indigo Duskywing,,en,Vermont,US,TRUE
+VBS:88,Columbine Duskywing,,en,Vermont,US,TRUE
+VBS:89,Persius Duskywing,,en,Vermont,US,TRUE
+VBS:9,Orange Sulphur,,en,Vermont,US,TRUE
+VBS:90.1,Common Checkered-Skipper,,en,Vermont,US,TRUE
+VBS:91.1,Arctic Skipperling,,en,Vermont,US,TRUE
+VBS:92,Least Skipper,,en,Vermont,US,TRUE
+VBS:93,European Skipper,,en,Vermont,US,TRUE
+VBS:94,Pepper and Salt Skipper,,en,Vermont,US,TRUE
+VBS:95,Common Roadside-Skipper,,en,Vermont,US,TRUE
+VBS:96,Fiery Skipper,,en,Vermont,US,TRUE
+VBS:97.1,Common Branded Skipper,,en,Vermont,US,TRUE
+VBS:97.1,Western Branded Skipper,,en,Vermont,US,FALSE
+VBS:97.1.1,Laurentian Skipper,,en,Vermont,US,TRUE
+VBS:98,Leonard's Skipper,,en,Vermont,US,TRUE
+VBS:99,Cobweb Skipper,,en,Vermont,US,TRUE
