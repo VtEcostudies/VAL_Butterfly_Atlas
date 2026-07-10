@@ -194,11 +194,11 @@
 
 <p class="ag-section-label">Volunteer gallery</p>
 
-<button class="ag-legend-toggle" id="ag-legend-toggle">📖 What do the badges mean?</button>
+<button class="ag-legend-toggle" id="ag-legend-toggle"> What do the badges mean?</button>
 <div class="ag-legend" id="ag-legend" style="display:none;"></div>
 
 <div class="ag-controls">
-  <input class="ag-search" id="ag-search" type="text" placeholder="Search by username…" />
+  <input class="ag-search" id="ag-search" type="text" placeholder="Search by username" />
   <span class="ag-count" id="ag-count"></span>
 </div>
 <div class="ag-pills" id="ag-pills"></div>
@@ -392,7 +392,7 @@ function topBadgeImages(v, max, size) {
 
   /* platform label */
   function platformLabel(v) {
-    if (v.inat && v.ebutterfly) return 'iNaturalist · eButterfly';
+    if (v.inat && v.ebutterfly) return 'iNaturalist &middot; eButterfly';
     if (v.inat)       return 'iNaturalist';
     if (v.ebutterfly) return 'eButterfly';
     return '';
