@@ -187,7 +187,7 @@
 
 <p class="ag-section-label">Top contributors</p>
 <div class="ag-leaderboard" id="ag-leaderboard">
-  <div class="ag-loading">Loading volunteers…</div>
+  <div class="ag-loading">Loading volunteers</div>
 </div>
 
 <hr class="ag-divider">
@@ -329,7 +329,7 @@
     var legendEl = document.getElementById('ag-legend');
     var isOpen = legendEl.style.display !== 'none';
     legendEl.style.display = isOpen ? 'none' : 'block';
-    this.textContent = isOpen ? '📖 What do the badges mean?' : '📖 Hide badge legend';
+    this.textContent = isOpen ? '📖 What do the badges mean?' : 'Hide badge legend';
   });
 
   renderLegend();
