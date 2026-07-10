@@ -355,7 +355,7 @@
 function blockPartyBadgeImgHTML(entry, size) {
   var def = badgeDef('bp' + entry.tier);
   if (!def) return '';
-  var label = 'Block Party Tier ' + entry.tier + ' — ' + entry.block;
+  var label = 'Block Party Level' + entry.tier + '&mdash;' + entry.block;
   return '<img class="ag-badge-img" src="' + def.img + '" '
        + 'alt="' + label + '" data-label="' + label + '" '
        + 'style="width:' + size + 'px;height:' + size + 'px;" />';
